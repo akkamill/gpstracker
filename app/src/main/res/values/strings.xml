@@ -1,17 +1,6 @@
 <resources>
     <string name="app_name">DriveMetrics</string>
 
-    <string name="showcase_title">Theme showcase</string>
-    <string name="showcase_colors">Colors</string>
-    <string name="showcase_type">Text styles</string>
-    <string name="showcase_sample_speed">62</string>
-    <string name="showcase_sample_score">Score 74</string>
-    <string name="showcase_sample_title">Screen title</string>
-    <string name="showcase_sample_card">Card title</string>
-    <string name="showcase_sample_body">Body text for reading</string>
-    <string name="showcase_sample_secondary">Secondary text</string>
-    <string name="showcase_sample_button">Button label</string>
-    <string name="showcase_sample_unit">km/h</string>
 
     <!-- Speed limit sign and gauge -->
     <string name="sign_unknown_cd">Speed limit unknown</string>
