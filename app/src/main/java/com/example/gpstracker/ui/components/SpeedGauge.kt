@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,8 +72,6 @@ fun SpeedGauge(
 
     Box(
         modifier = modifier
-            .widthIn(max = 320.dp)
-            .fillMaxWidth()
             .aspectRatio(1f)
             .clearAndSetSemantics { contentDescription = description },
         contentAlignment = Alignment.Center,
