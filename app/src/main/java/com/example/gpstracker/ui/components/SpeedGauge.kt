@@ -52,6 +52,8 @@ fun SpeedGauge(
     limitKmh: Int?,
     isOverLimit: Boolean,
     modifier: Modifier = Modifier,
+    dimmed: Boolean = false,
+    offline: Boolean = false,
 ) {
     val fraction by animateFloatAsState(
         targetValue = (speedKmh / MAX_KMH).coerceIn(0f, 1f),
@@ -64,7 +66,9 @@ fun SpeedGauge(
     val measurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelMedium.copy(color = Concrete)
 
+    val inactive = dimmed || offline
     val description = when {
+        offline -> stringResource(R.string.gauge_cd_offline)
         limitKmh == null -> stringResource(R.string.gauge_cd_unknown, speedKmh)
         isOverLimit -> stringResource(R.string.gauge_cd, speedKmh, limitKmh, overBy)
         else -> stringResource(R.string.gauge_cd_within, speedKmh, limitKmh)
@@ -86,7 +90,9 @@ fun SpeedGauge(
             val arcSize = Size(diameter, diameter)
 
             drawArc(KerbHigh, START_ANGLE, SWEEP_ANGLE, false, topLeft, arcSize, style = Stroke(strokeWidth, cap = StrokeCap.Round))
-            drawArc(arcColor, START_ANGLE, SWEEP_ANGLE * fraction, false, topLeft, arcSize, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+            if (!inactive) {
+                drawArc(arcColor, START_ANGLE, SWEEP_ANGLE * fraction, false, topLeft, arcSize, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+            }
 
             fun pointAt(kmh: Float, r: Float): Offset {
                 val angle = Math.toRadians((START_ANGLE + SWEEP_ANGLE * kmh / MAX_KMH).toDouble())
@@ -112,7 +118,7 @@ fun SpeedGauge(
                 tick += MINOR_TICK_STEP
             }
 
-            if (limitKmh != null) {
+            if (limitKmh != null && !inactive) {
                 val clamped = limitKmh.coerceIn(0, MAX_KMH.toInt()).toFloat()
                 drawLine(
                     color = SignalAmber,
@@ -125,16 +131,16 @@ fun SpeedGauge(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = shownSpeed.toString(),
+                text = if (offline) stringResource(R.string.sign_unknown_text) else shownSpeed.toString(),
                 style = MaterialTheme.typography.speedValue,
-                color = if (isOverLimit) SignRed else LineWhite,
+                color = if (inactive) Concrete else if (isOverLimit) SignRed else LineWhite,
             )
             Text(
                 text = stringResource(R.string.gauge_unit),
                 style = MaterialTheme.typography.labelMedium,
                 color = Concrete,
             )
-            if (isOverLimit) {
+            if (isOverLimit && !inactive) {
                 Text(
                     text = stringResource(R.string.gauge_over, overBy),
                     style = MaterialTheme.typography.labelLarge,
@@ -155,4 +161,16 @@ private fun SpeedGaugeNormalPreview() {
 @Composable
 private fun SpeedGaugeOverLimitPreview() {
     DriveMetricsTheme { SpeedGauge(speedKmh = 72, limitKmh = 50, isOverLimit = true) }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1417)
+@Composable
+private fun SpeedGaugeParkedPreview() {
+    DriveMetricsTheme { SpeedGauge(speedKmh = 0, limitKmh = null, isOverLimit = false, dimmed = true) }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1417)
+@Composable
+private fun SpeedGaugeOfflinePreview() {
+    DriveMetricsTheme { SpeedGauge(speedKmh = 0, limitKmh = 50, isOverLimit = false, offline = true) }
 }
