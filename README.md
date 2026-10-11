@@ -15,9 +15,9 @@ a built-in simulator, so the whole app can be demoed without a car, GPS or serve
 
 | Screen | What you see |
 |---|---|
-| **Drive** | Live speed gauge, speed limit sign, driving score, distance/time/events, start and end trip |
-| **Map** | The route so far, event markers and the current position (drawn on a canvas, no API key) |
-| **Trips** | Weekly average score, a sparkline and the history grouped by day |
+| **Drive** | Read-only live dashboard: speed gauge, limit sign, score, distance/time/events, trip status; the last trip while parked |
+| **Map** | The route so far with event markers, or the last trip dimmed while parked (drawn on a canvas, no API key) |
+| **Trips** | Weekly average score, a sparkline, the trip in progress and the history grouped by day |
 | **Trip detail** | Score, stats, route with event markers, "where you lost points", fuel estimate and coaching tips |
 | **Insights** | You against a simulated benchmark driver: score trend, events per 100 km, fuel and money estimate |
 | **Welcome, Sign in, Sign up** | Account flow with validation, privacy consent and a "Try the demo" guest mode |
@@ -30,9 +30,42 @@ a built-in simulator, so the whole app can be demoed without a car, GPS or serve
 Choose **Try the demo** on the welcome screen, or sign in with the demo account
 `demo@drivemetrics.app` / `demo1234` (accounts are in memory only and reset when the app closes).
 
-The simulator drives a looping route through Kaunas. Tap **Start trip** and within about two
-minutes you will see speeding, an event banner, a reconnecting banner and a GPS-lost banner.
-End the trip (hold the button for one second) and it appears in **Trips** and changes **Insights**.
+There is **no start or end trip button**. The app always shows live data from the car, and trips
+start and end by themselves from the car's data (ignition and movement). The simulator is a
+simulated car that runs one loop of about three minutes, with nothing to press:
+
+1. the car is parked, then the ignition turns on and a trip starts by itself,
+2. it drives through Kaunas: speeding, an event banner, a traffic-light stop that does **not**
+   split the trip, a reconnecting banner and a GPS-lost banner,
+3. it arrives, the ignition turns off, the trip ends by itself and a "Trip saved" banner
+   appears; the trip shows up in **Trips** and changes **Insights**.
+
+Demo time runs ten times faster than real time so the detection rules behave realistically.
+In debug builds, **Settings → About → Skip to next drive** jumps the simulated car to its next
+drive; it controls the car, never the trip.
+
+### How trips are detected
+
+`TripDetector` (`data/estimate/TripDetector.kt`) is a small, unit-tested state machine
+(`Parked → Driving ⇄ Stopped → Parked`):
+
+| Rule | Value |
+|---|---|
+| Trip starts | ignition on and speed above 5 km/h (without ignition data: above 5 km/h for 10 s) |
+| Short stops (lights, jams) | do not end the trip; it ends after the car stands still for 2, 5 or 10 min (Settings) |
+| Ignition off | ends the trip after a 30 s grace period for quick restarts |
+| No data for 10 min | ends the trip at the last sample, marked "ended without signal" |
+| Too short | trips under 0.3 km or 60 s are discarded |
+
+### Open decision: when the app is closed
+
+The UI phase only shows live data while the app is open. For the real version choose one, and
+ask the teacher whether a server-side database is acceptable:
+
+- **A. Server keeps the data (recommended):** the relay server stores telemetry; the app catches
+  up on missed samples when it opens or reconnects and runs `TripDetector` over them.
+- **B. Foreground service on the phone:** keeps the connection open with a permanent
+  notification; works without a server database but Android restricts it and it drains battery.
 
 ### Honest numbers
 
