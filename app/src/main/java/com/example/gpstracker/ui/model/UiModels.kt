@@ -56,6 +56,7 @@ data class DriveUiState(
     val route: List<GeoPointUi> = emptyList(),
     val events: List<DrivingEventUi> = emptyList(),
     val avgSpeedKmh: Int = 0,
+    val retryInSeconds: Int = 4,
 ) {
     val overLimitBy: Int get() = speedLimitKmh?.let { (speedKmh - it).coerceAtLeast(0) } ?: 0
     val isOverLimit: Boolean get() = overLimitBy > OVER_LIMIT_TOLERANCE_KMH
