@@ -140,4 +140,41 @@
         <item quantity="one">Alerting %1$s in %2$d second</item>
         <item quantity="other">Alerting %1$s in %2$d seconds</item>
     </plurals>
+
+    <!-- v2: charts, fuel, insights, account -->
+    <string name="legend_you">You</string>
+    <string name="legend_benchmark">Simulated benchmark</string>
+    <string name="trend_cd">Your score went from %1$d to %2$d over %3$d periods. Benchmark stays around %4$d.</string>
+    <string name="trend_cd_empty">Not enough data for a trend yet.</string>
+    <string name="trend_tooltip">%1$s · You %2$d · Benchmark %3$d</string>
+    <string name="trend_tooltip_no_trips">%1$s · No trips · Benchmark %2$d</string>
+    <string name="compare_better">Better</string>
+    <string name="compare_similar">Similar</string>
+    <string name="compare_worse">Worse</string>
+    <string name="comparison_row_cd">%1$s: you %2$s, benchmark %3$s per 100 kilometers. %4$s.</string>
+    <string name="comparison_caption">Events per 100 km. Lower is better.</string>
+
+    <string name="fuel_title">Fuel and money</string>
+    <string name="fuel_info_cd">How estimates work</string>
+    <string name="fuel_used">Fuel used</string>
+    <string name="fuel_wasted">Wasted</string>
+    <string name="fuel_co2">CO₂</string>
+    <string name="unit_l">L</string>
+    <string name="unit_kg">kg</string>
+    <string name="fuel_lost">%1$s lost to harsh driving</string>
+    <string name="fuel_add_price">Add your fuel price to see costs</string>
+    <string name="fuel_add_price_action">Add price</string>
+    <string name="fuel_no_data">No fuel data yet.</string>
+    <string name="fuel_footer">Estimates based on your vehicle settings.</string>
+    <string name="estimates_title">How estimates work</string>
+    <string name="estimates_body">Fuel use is estimated from distance and your car\'s average consumption. Extra fuel is added for harsh acceleration, harsh braking and time spent above the speed limit. Costs use the fuel price you entered. CO₂ is calculated from estimated fuel. These are estimates, not measurements.</string>
+    <string name="info_got_it">Got it</string>
+
+    <string name="guest_banner">Demo mode. Create an account to keep your trips.</string>
+    <string name="guest_banner_action">Create account</string>
+    <string name="avatar_cd">Account and settings</string>
+
+    <string name="password_show">Show password</string>
+    <string name="password_hide">Hide password</string>
+    <string name="error_cd">Error</string>
 </resources>
