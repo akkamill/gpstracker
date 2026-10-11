@@ -257,4 +257,16 @@
     <string name="signout_body">Trips stay on this phone.</string>
     <string name="signout_confirm">Sign out</string>
     <string name="cancel">Cancel</string>
+
+    <!-- Automatic trips -->
+    <string name="status_driving">Driving. %1$s</string>
+    <string name="status_driving_plain">Driving</string>
+    <string name="status_stopped">Stopped. Trip continues when you drive on</string>
+    <string name="status_parked">Parked. A new trip starts when the car moves</string>
+    <string name="last_trip_label">Last trip</string>
+    <string name="last_trip_meta">%1$s %2$s, %3$s km</string>
+    <string name="trip_saved_title">Trip saved</string>
+    <string name="trip_saved_summary">%1$s km, score %2$d</string>
+    <string name="trip_saved_view">View</string>
+    <string name="gauge_cd_offline">Speed unavailable. Not connected to the car.</string>
 </resources>

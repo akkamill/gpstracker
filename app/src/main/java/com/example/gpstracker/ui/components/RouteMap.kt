@@ -36,6 +36,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 private const val BOUNDS_PADDING = 0.10
+private const val DIMMED_ALPHA = 0.5f
 private const val FOLLOW_SPAN_DEG = 0.006
 private const val MIN_SPAN_DEG = 1e-5
 
@@ -52,8 +53,9 @@ fun RouteMap(
     currentPosition: GeoPointUi? = null,
     selectedEventId: String? = null,
     followCurrent: Boolean = false,
+    dimmed: Boolean = false,
 ) {
-    CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent)
+    CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent, dimmed)
 }
 
 @Composable
@@ -64,6 +66,7 @@ private fun CanvasRouteMap(
     currentPosition: GeoPointUi?,
     selectedEventId: String?,
     followCurrent: Boolean,
+    dimmed: Boolean,
 ) {
     val description = stringResource(R.string.map_preview_label)
     Box(
@@ -88,7 +91,7 @@ private fun CanvasRouteMap(
                 }
                 drawPath(
                     path,
-                    NightBlue,
+                    if (dimmed) NightBlue.copy(alpha = DIMMED_ALPHA) else NightBlue,
                     style = Stroke(5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
                 )
             }
