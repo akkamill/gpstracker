@@ -89,7 +89,10 @@ fun DriveMetricsNavHost(
 
         navigation<MainGraph>(startDestination = DriveDestination) {
             composable<DriveDestination> {
-                DriveRoute(onOpenSettings = { navController.navigate(SettingsDestination) })
+                DriveRoute(
+                    onOpenTrip = { navController.navigate(TripDetailDestination(it)) },
+                    onOpenSettings = { navController.navigate(SettingsDestination) },
+                )
             }
             composable<MapDestination> { MapRoute() }
             composable<TripsDestination> {

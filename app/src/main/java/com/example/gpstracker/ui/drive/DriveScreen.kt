@@ -5,17 +5,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
@@ -32,42 +34,50 @@ import com.example.gpstracker.ui.components.ConnectionChip
 import com.example.gpstracker.ui.components.EventBanner
 import com.example.gpstracker.ui.components.GpsChip
 import com.example.gpstracker.ui.components.KeepScreenOn
+import com.example.gpstracker.ui.components.LastTripCard
 import com.example.gpstracker.ui.components.ScoreBadge
 import com.example.gpstracker.ui.components.SpeedGauge
 import com.example.gpstracker.ui.components.SpeedLimitSign
 import com.example.gpstracker.ui.components.StatTile
 import com.example.gpstracker.ui.components.StatTileRow
 import com.example.gpstracker.ui.components.StatusBanner
-import com.example.gpstracker.ui.components.TripButton
+import com.example.gpstracker.ui.components.TripSavedBanner
+import com.example.gpstracker.ui.components.TripStatusBar
 import com.example.gpstracker.ui.components.labelRes
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.GpsStatus
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
+import java.util.Locale
 
 /**
- * Live dashboard. Stateless: everything comes in as [state] and goes out as
- * callbacks, so it can be previewed and tested without a ViewModel.
+ * Live dashboard. Read-only: it shows what the car reports and nothing on it
+ * starts or ends a trip. Stateless: everything comes in as [state] and goes out
+ * as callbacks, so it can be previewed and tested without a ViewModel.
  */
 @Composable
 fun DriveScreen(
     state: DriveUiState,
-    onStartTrip: () -> Unit,
-    onStopTrip: () -> Unit,
+    onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    KeepScreenOn(enabled = state.isTripActive)
+    KeepScreenOn(enabled = state.isTripInProgress)
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val landscape = maxWidth > maxHeight
         if (landscape) {
-            LandscapeLayout(state, onStartTrip, onStopTrip, onOpenSettings)
+            LandscapeLayout(state, onOpenTrip, onOpenSettings)
         } else {
-            PortraitLayout(state, onStartTrip, onStopTrip, onOpenSettings)
+            PortraitLayout(state, onOpenTrip, onOpenSettings)
         }
         EventBanner(
             event = state.latestEvent,
             modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
+        )
+        TripSavedBanner(
+            trip = state.tripJustSaved,
+            onView = onOpenTrip,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 64.dp),
         )
     }
 }
@@ -75,8 +85,7 @@ fun DriveScreen(
 @Composable
 private fun PortraitLayout(
     state: DriveUiState,
-    onStartTrip: () -> Unit,
-    onStopTrip: () -> Unit,
+    onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
@@ -93,7 +102,7 @@ private fun PortraitLayout(
                     ConnectionChip(state.connection)
                     GpsChip(state.gps)
                 }
-                SpeedLimitSign(state.speedLimitKmh)
+                if (state.isTripInProgress) SpeedLimitSign(state.speedLimitKmh)
             }
             Banner(state, onOpenSettings)
             SpeedGauge(
@@ -101,22 +110,26 @@ private fun PortraitLayout(
                 limitKmh = state.speedLimitKmh,
                 isOverLimit = state.isOverLimit,
                 modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
+                dimmed = !state.isTripInProgress,
+                offline = state.connection == ConnectionStatus.Offline,
             )
-            ScoreSection(state, Modifier.fillMaxWidth())
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            StatTileRow(
-                tiles = listOf(
-                    { m -> StatTile(distanceValue(state), unitKm(state), stringResource(R.string.stat_distance), m) },
-                    { m -> StatTile(timeValue(state), null, stringResource(R.string.stat_time), m) },
-                    { m -> StatTile(eventsValue(state), null, stringResource(R.string.stat_events), m) },
-                ),
-            )
+            if (state.isTripInProgress) {
+                ScoreSection(state, Modifier.fillMaxWidth())
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                StatTileRow(
+                    tiles = listOf(
+                        { m -> StatTile(distanceValue(state), stringResource(R.string.unit_km), stringResource(R.string.stat_distance), m) },
+                        { m -> StatTile(state.durationLabel, null, stringResource(R.string.stat_time), m) },
+                        { m -> StatTile(state.eventCount.toString(), null, stringResource(R.string.stat_events), m) },
+                    ),
+                )
+            } else {
+                ParkedContent(state, onOpenTrip)
+            }
         }
-        TripButton(
-            isTripActive = state.isTripActive,
-            enabled = tripButtonEnabled(state),
-            onStart = onStartTrip,
-            onStop = onStopTrip,
+        TripStatusBar(
+            vehicleState = state.vehicleState,
+            tripStartedLabel = state.tripStartedLabel,
             modifier = Modifier.padding(vertical = 16.dp),
         )
     }
@@ -125,19 +138,25 @@ private fun PortraitLayout(
 @Composable
 private fun LandscapeLayout(
     state: DriveUiState,
-    onStartTrip: () -> Unit,
-    onStopTrip: () -> Unit,
+    onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    Row(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         Box(Modifier.weight(0.55f).fillMaxHeight(), contentAlignment = Alignment.Center) {
             SpeedGauge(
                 speedKmh = state.speedKmh,
                 limitKmh = state.speedLimitKmh,
                 isOverLimit = state.isOverLimit,
                 modifier = Modifier.fillMaxHeight(),
+                dimmed = !state.isTripInProgress,
+                offline = state.connection == ConnectionStatus.Offline,
             )
-            SpeedLimitSign(state.speedLimitKmh, Modifier.align(Alignment.TopEnd))
+            if (state.isTripInProgress) {
+                SpeedLimitSign(state.speedLimitKmh, Modifier.align(Alignment.TopEnd))
+            }
         }
         Column(
             modifier = Modifier.weight(0.45f).fillMaxHeight(),
@@ -152,21 +171,52 @@ private fun LandscapeLayout(
                     GpsChip(state.gps)
                 }
                 Banner(state, onOpenSettings)
-                ScoreSection(state, Modifier.fillMaxWidth())
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    StatTile(distanceValue(state), unitKm(state), stringResource(R.string.stat_distance))
-                    StatTile(timeValue(state), null, stringResource(R.string.stat_time))
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    StatTile(eventsValue(state), null, stringResource(R.string.stat_events))
-                    StatTile(avgSpeedValue(state), avgSpeedUnit(state), stringResource(R.string.stat_avg_speed))
+                if (state.isTripInProgress) {
+                    ScoreSection(state, Modifier.fillMaxWidth())
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        StatTile(distanceValue(state), stringResource(R.string.unit_km), stringResource(R.string.stat_distance))
+                        StatTile(state.durationLabel, null, stringResource(R.string.stat_time))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        StatTile(state.eventCount.toString(), null, stringResource(R.string.stat_events))
+                        StatTile(state.avgSpeedKmh.toString(), stringResource(R.string.gauge_unit), stringResource(R.string.stat_avg_speed))
+                    }
+                } else {
+                    ParkedContent(state, onOpenTrip)
                 }
             }
-            TripButton(
-                isTripActive = state.isTripActive,
-                enabled = tripButtonEnabled(state),
-                onStart = onStartTrip,
-                onStop = onStopTrip,
+            TripStatusBar(state.vehicleState, state.tripStartedLabel)
+        }
+    }
+}
+
+@Composable
+private fun ParkedContent(state: DriveUiState, onOpenTrip: (String) -> Unit) {
+    val last = state.lastTrip
+    if (last != null) {
+        LastTripCard(trip = last, onClick = { onOpenTrip(last.id) })
+    } else {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                Icons.Rounded.DirectionsCar,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp),
+            )
+            Text(
+                text = stringResource(R.string.first_drive_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.first_drive_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -175,7 +225,13 @@ private fun LandscapeLayout(
 @Composable
 private fun Banner(state: DriveUiState, onOpenSettings: () -> Unit) {
     when {
-        state.gps == GpsStatus.Lost && state.isTripActive -> StatusBanner(
+        state.connection == ConnectionStatus.Offline -> StatusBanner(
+            kind = BannerKind.Offline,
+            message = stringResource(R.string.banner_offline),
+            actionLabel = stringResource(R.string.nav_settings),
+            onAction = onOpenSettings,
+        )
+        state.gps == GpsStatus.Lost && state.isTripInProgress -> StatusBanner(
             kind = BannerKind.GpsLost,
             message = stringResource(R.string.banner_gps_lost),
         )
@@ -183,26 +239,11 @@ private fun Banner(state: DriveUiState, onOpenSettings: () -> Unit) {
             kind = BannerKind.Reconnecting,
             message = stringResource(R.string.banner_reconnecting, state.retryInSeconds),
         )
-        state.connection == ConnectionStatus.Offline && !state.isTripActive -> StatusBanner(
-            kind = BannerKind.Offline,
-            message = stringResource(R.string.banner_offline),
-            actionLabel = stringResource(R.string.nav_settings),
-            onAction = onOpenSettings,
-        )
     }
 }
 
 @Composable
 private fun ScoreSection(state: DriveUiState, modifier: Modifier = Modifier) {
-    if (!state.isTripActive) {
-        Text(
-            text = stringResource(R.string.score_start_prompt),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = modifier,
-        )
-        return
-    }
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         ScoreBadge(score = state.score, band = state.scoreBand)
         Column(Modifier.padding(start = 16.dp)) {
@@ -224,40 +265,15 @@ private fun ScoreSection(state: DriveUiState, modifier: Modifier = Modifier) {
     }
 }
 
-private fun tripButtonEnabled(state: DriveUiState) =
-    state.connection != ConnectionStatus.Offline && state.connection != ConnectionStatus.Connecting
-
-@Composable
-private fun distanceValue(state: DriveUiState): String =
-    if (state.isTripActive) "%.1f".format(state.distanceKm) else stringResource(R.string.stat_none)
-
-@Composable
-private fun unitKm(state: DriveUiState): String? =
-    if (state.isTripActive) stringResource(R.string.unit_km) else null
-
-@Composable
-private fun timeValue(state: DriveUiState): String =
-    if (state.isTripActive) state.durationLabel else stringResource(R.string.stat_none)
-
-@Composable
-private fun eventsValue(state: DriveUiState): String =
-    if (state.isTripActive) state.eventCount.toString() else stringResource(R.string.stat_none)
-
-@Composable
-private fun avgSpeedValue(state: DriveUiState): String =
-    if (state.isTripActive) state.avgSpeedKmh.toString() else stringResource(R.string.stat_none)
-
-@Composable
-private fun avgSpeedUnit(state: DriveUiState): String? =
-    if (state.isTripActive) stringResource(R.string.gauge_unit) else null
+private fun distanceValue(state: DriveUiState): String = String.format(Locale.US, "%.1f", state.distanceKm)
 
 // ---- Previews: one per state listed in the spec ----
 
 @Composable
 private fun PreviewScreen(state: DriveUiState) {
     DriveMetricsTheme {
-        Box(Modifier.fillMaxSize().padding(top = 0.dp)) {
-            DriveScreen(state, {}, {}, {})
+        Box(Modifier.fillMaxSize()) {
+            DriveScreen(state, onOpenTrip = {}, onOpenSettings = {})
         }
     }
 }
@@ -265,38 +281,50 @@ private fun PreviewScreen(state: DriveUiState) {
 private const val PHONE = "spec:width=411dp,height=891dp"
 private const val BG = 0xFF0F1417
 
-@Preview(name = "1 Idle replay", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "1 Parked, last trip", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
-private fun IdlePreview() = PreviewScreen(PreviewStates.driveIdle)
+private fun ParkedPreview() = PreviewScreen(PreviewStates.driveParked)
 
-@Preview(name = "2 Active normal", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "2 Parked, first use", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
-private fun ActivePreview() = PreviewScreen(PreviewStates.driveActive)
+private fun FirstUsePreview() = PreviewScreen(PreviewStates.driveFirstUse)
 
-@Preview(name = "3 Over limit", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "3 Driving", showBackground = true, backgroundColor = BG, device = PHONE)
+@Composable
+private fun DrivingPreview() = PreviewScreen(PreviewStates.driveDriving)
+
+@Preview(name = "4 Over limit", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun OverLimitPreview() = PreviewScreen(PreviewStates.driveOverLimit)
 
-@Preview(name = "4 Event banner", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "5 Event banner", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun EventBannerPreview() = PreviewScreen(PreviewStates.driveEventBanner)
 
-@Preview(name = "5 Reconnecting", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "6 Stopped at a light", showBackground = true, backgroundColor = BG, device = PHONE)
+@Composable
+private fun StoppedPreview() = PreviewScreen(PreviewStates.driveStopped)
+
+@Preview(name = "7 Trip just saved", showBackground = true, backgroundColor = BG, device = PHONE)
+@Composable
+private fun TripSavedPreview() = PreviewScreen(PreviewStates.driveTripSaved)
+
+@Preview(name = "8 Reconnecting", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun ReconnectingPreview() = PreviewScreen(PreviewStates.driveReconnecting)
 
-@Preview(name = "6 GPS lost", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "9 GPS lost", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun GpsLostPreview() = PreviewScreen(PreviewStates.driveGpsLost)
 
-@Preview(name = "7 Offline", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "10 Offline", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun OfflinePreview() = PreviewScreen(PreviewStates.driveOffline)
 
-@Preview(name = "8 Unknown limit", showBackground = true, backgroundColor = BG, device = PHONE)
+@Preview(name = "11 Unknown limit", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun UnknownLimitPreview() = PreviewScreen(PreviewStates.driveUnknownLimit)
 
-@Preview(name = "9 Landscape", showBackground = true, backgroundColor = BG, device = "spec:width=891dp,height=411dp")
+@Preview(name = "12 Landscape, driving", showBackground = true, backgroundColor = BG, device = "spec:width=891dp,height=411dp")
 @Composable
-private fun LandscapePreview() = PreviewScreen(PreviewStates.driveActive)
+private fun LandscapePreview() = PreviewScreen(PreviewStates.driveDriving)

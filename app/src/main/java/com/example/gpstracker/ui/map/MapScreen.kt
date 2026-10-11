@@ -46,14 +46,17 @@ fun MapScreen(
     modifier: Modifier = Modifier,
 ) {
     var followCurrent by remember { mutableStateOf(false) }
-    val hasRoute = state.isTripActive && state.route.isNotEmpty()
+    val inProgress = state.isTripInProgress
+    // While parked the last trip is shown dimmed; with no trips at all only the grid and the car.
+    val shownRoute = if (inProgress) state.route else state.lastTripRoute.takeIf { state.lastTrip != null }.orEmpty()
 
     Box(modifier.fillMaxSize()) {
         RouteMap(
-            route = if (hasRoute) state.route else emptyList(),
-            events = if (hasRoute) state.events else emptyList(),
-            currentPosition = state.route.lastOrNull(),
-            followCurrent = followCurrent,
+            route = shownRoute,
+            events = if (inProgress) state.events else emptyList(),
+            currentPosition = state.position ?: state.route.lastOrNull(),
+            followCurrent = followCurrent && inProgress,
+            dimmed = !inProgress,
             modifier = Modifier.fillMaxSize(),
         )
         Row(
@@ -76,14 +79,14 @@ fun MapScreen(
         }
         OverlayCard(
             state = state,
-            hasRoute = hasRoute,
+            inProgress = inProgress,
             modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
         )
     }
 }
 
 @Composable
-private fun OverlayCard(state: DriveUiState, hasRoute: Boolean, modifier: Modifier = Modifier) {
+private fun OverlayCard(state: DriveUiState, inProgress: Boolean, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -91,9 +94,9 @@ private fun OverlayCard(state: DriveUiState, hasRoute: Boolean, modifier: Modifi
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (!hasRoute) {
+        if (!inProgress) {
             Text(
-                text = stringResource(R.string.map_empty_hint),
+                text = stringResource(R.string.map_parked_hint),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -148,5 +151,11 @@ private fun MapActivePreview() {
 @Preview(name = "Empty", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun MapEmptyPreview() {
-    DriveMetricsTheme { MapScreen(PreviewStates.driveIdle, onRecenter = {}) }
+    DriveMetricsTheme { MapScreen(PreviewStates.driveFirstUse, onRecenter = {}) }
+}
+
+@Preview(name = "Parked, last trip dimmed", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
+@Composable
+private fun MapParkedPreview() {
+    DriveMetricsTheme { MapScreen(PreviewStates.driveParked, onRecenter = {}) }
 }

@@ -26,5 +26,6 @@ object AppContainer {
     /** The single fake producer behind the whole app. */
     val simulator: FakeDriveSimulator = FakeDriveSimulator(
         vehicleProvider = { settings.value.vehicle.toNumbers() },
+        tripEndAfterMinutes = { settings.value.tripEndAfterMinutes },
     ).also { it.start(appScope) }
 }

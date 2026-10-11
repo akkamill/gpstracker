@@ -46,12 +46,6 @@
     <string name="map_preview_label">Map preview</string>
     <string name="map_current_position">Current position</string>
 
-    <!-- Trip button -->
-    <string name="trip_start">Start trip</string>
-    <string name="trip_end">End trip</string>
-    <string name="trip_hold_hint">Hold to end trip</string>
-    <string name="trip_waiting">Waiting for connection</string>
-    <string name="trip_hold_action">End trip</string>
 
     <!-- Navigation -->
     <string name="nav_drive">Drive</string>
@@ -62,7 +56,7 @@
     <!-- Drive screen -->
     <string name="banner_reconnecting">Connection lost. Trying again in %1$d s.</string>
     <string name="banner_gps_lost">GPS signal lost. Score paused until it returns.</string>
-    <string name="banner_offline">Not connected. Check the server address in Settings.</string>
+    <string name="banner_offline">Not connected to the car. Check the server address in Settings.</string>
     <string name="score_start_prompt">Start a trip to get a score</string>
     <string name="score_title">Driving score</string>
     <string name="score_summary">%1$s, %2$s</string>
@@ -77,7 +71,7 @@
 
     <!-- Map screen -->
     <string name="map_recenter_cd">Recenter map</string>
-    <string name="map_empty_hint">Start a trip on the Drive tab to record your route.</string>
+    <string name="map_parked_hint">Parked. Your route appears here when the car moves.</string>
     <string name="map_over_limit">+%1$d</string>
     <string name="map_summary">%1$s km, %2$s, %3$s</string>
 
@@ -269,4 +263,6 @@
     <string name="trip_saved_summary">%1$s km, score %2$d</string>
     <string name="trip_saved_view">View</string>
     <string name="gauge_cd_offline">Speed unavailable. Not connected to the car.</string>
+    <string name="first_drive_title">Waiting for your first drive</string>
+    <string name="first_drive_message">Trips are recorded automatically when the car moves.</string>
 </resources>
