@@ -80,8 +80,7 @@
     <string name="trips_week_title">This week</string>
     <string name="trips_week_summary">Average score, %1$s</string>
     <string name="trips_empty_title">No trips yet</string>
-    <string name="trips_empty_message">Start a trip on the Drive tab. Finished trips appear here.</string>
-    <string name="trips_go_to_drive">Go to Drive</string>
+    <string name="trips_empty_message">Trips are recorded automatically when your car is driving.</string>
     <string name="trip_row_meta">%1$s, %2$s km, %3$s</string>
     <string name="trip_row_cd">%1$s, %2$s, score %3$d, %4$s</string>
     <plurals name="trips_count">
@@ -234,9 +233,8 @@
     <string name="insights_trend_title">Score over time</string>
     <string name="insights_compare_title">Compared with the benchmark</string>
     <string name="insights_empty_title">Not enough trips yet</string>
-    <string name="insights_empty_week">Finish at least 3 trips this week to compare your driving.</string>
-    <string name="insights_empty_month">Finish at least 3 trips this month to compare your driving.</string>
-    <string name="insights_go_to_drive">Go to Drive</string>
+    <string name="insights_empty_week">After 3 trips this week you can compare your driving. Trips are recorded automatically.</string>
+    <string name="insights_empty_month">After 3 trips this month you can compare your driving. Trips are recorded automatically.</string>
 
     <!-- Settings v2 -->
     <string name="nav_insights">Insights</string>
@@ -265,4 +263,10 @@
     <string name="gauge_cd_offline">Speed unavailable. Not connected to the car.</string>
     <string name="first_drive_title">Waiting for your first drive</string>
     <string name="first_drive_message">Trips are recorded automatically when the car moves.</string>
+    <string name="settings_section_trips">Trips</string>
+    <string name="settings_trip_end_title">End a trip after the car stands still for</string>
+    <string name="settings_trip_end_option">%1$d min</string>
+    <string name="settings_trip_end_hint">Trips also end when the engine is turned off. Short stops, like traffic lights, don\'t split a trip.</string>
+    <string name="settings_trip_auto_note">Trips start automatically when the car moves.</string>
+    <string name="settings_skip_drive">Skip to next drive</string>
 </resources>

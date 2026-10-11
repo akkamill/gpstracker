@@ -78,6 +78,9 @@ object PreviewStates {
 
     val tripsEmpty = TripsUiState()
 
+    /** A trip is in progress: it appears as the first row. */
+    val tripsDrivingNow = FakeData.tripsState.copy(tripInProgressLabel = "Driving now, started 14:05")
+
     val settingsDefault = SettingsUiState()
 
     val settingsInvalidUrl = SettingsUiState(

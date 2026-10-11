@@ -75,6 +75,7 @@ fun SettingsScreen(
     onDataSourceChange: (DataSource) -> Unit,
     onServerUrlChange: (String) -> Unit,
     onToleranceChange: (Int) -> Unit,
+    onTripEndAfterChange: (Int) -> Unit,
     onCrashDetectionChange: (Boolean) -> Unit,
     onEmergencyContactChange: (String) -> Unit,
     onEditVehicle: () -> Unit,
@@ -82,6 +83,8 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     onCreateAccount: () -> Unit,
     modifier: Modifier = Modifier,
+    showDebugTools: Boolean = false,
+    onSkipToNextDrive: () -> Unit = {},
 ) {
     var confirmSignOut by remember { mutableStateOf(false) }
     var showEstimates by remember { mutableStateOf(false) }
@@ -113,8 +116,14 @@ fun SettingsScreen(
             VehicleSection(state.vehicle, onEditVehicle)
             DataSourceSection(state, onDataSourceChange, onServerUrlChange)
             ScoringSection(state, onToleranceChange)
+            TripsSection(state, onTripEndAfterChange)
             SafetySection(state, onCrashDetectionChange, onEmergencyContactChange, onTriggerTestCrash)
-            AboutSection(state, onShowEstimates = { showEstimates = true })
+            AboutSection(
+                state = state,
+                onShowEstimates = { showEstimates = true },
+                showDebugTools = showDebugTools,
+                onSkipToNextDrive = onSkipToNextDrive,
+            )
         }
     }
 
@@ -306,6 +315,40 @@ private fun ScoringSection(state: SettingsUiState, onToleranceChange: (Int) -> U
     }
 }
 
+private val TRIP_END_OPTIONS = listOf(2, 5, 10)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TripsSection(state: SettingsUiState, onTripEndAfterChange: (Int) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionTitle(R.string.settings_section_trips)
+        Text(
+            text = stringResource(R.string.settings_trip_end_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            TRIP_END_OPTIONS.forEachIndexed { index, minutes ->
+                SegmentedButton(
+                    selected = state.tripEndAfterMinutes == minutes,
+                    onClick = { onTripEndAfterChange(minutes) },
+                    shape = SegmentedButtonDefaults.itemShape(index, TRIP_END_OPTIONS.size),
+                ) { Text(stringResource(R.string.settings_trip_end_option, minutes)) }
+            }
+        }
+        Text(
+            text = stringResource(R.string.settings_trip_end_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = stringResource(R.string.settings_trip_auto_note),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 @Composable
 private fun SafetySection(
     state: SettingsUiState,
@@ -346,7 +389,12 @@ private fun SafetySection(
 }
 
 @Composable
-private fun AboutSection(state: SettingsUiState, onShowEstimates: () -> Unit) {
+private fun AboutSection(
+    state: SettingsUiState,
+    onShowEstimates: () -> Unit,
+    showDebugTools: Boolean,
+    onSkipToNextDrive: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionTitle(R.string.settings_section_about)
         Row(
@@ -383,6 +431,9 @@ private fun AboutSection(state: SettingsUiState, onShowEstimates: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (showDebugTools) {
+            TextButton(onClick = onSkipToNextDrive) { Text(stringResource(R.string.settings_skip_drive)) }
+        }
     }
 }
 
@@ -391,7 +442,21 @@ private const val PHONE = "spec:width=411dp,height=1100dp"
 
 @Composable
 private fun PreviewScreen(state: SettingsUiState) {
-    DriveMetricsTheme { SettingsScreen(state, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}) }
+    DriveMetricsTheme { SettingsScreen(
+            state = state,
+            onBack = {},
+            onDataSourceChange = {},
+            onServerUrlChange = {},
+            onToleranceChange = {},
+            onTripEndAfterChange = {},
+            onCrashDetectionChange = {},
+            onEmergencyContactChange = {},
+            onEditVehicle = {},
+            onTriggerTestCrash = {},
+            onSignOut = {},
+            onCreateAccount = {},
+            showDebugTools = true,
+        ) }
 }
 
 @Preview(name = "Signed in", showBackground = true, backgroundColor = BG, device = PHONE)
