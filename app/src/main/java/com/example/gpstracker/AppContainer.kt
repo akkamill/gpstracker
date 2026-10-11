@@ -1,5 +1,8 @@
 package com.example.gpstracker
 
+import com.example.gpstracker.data.auth.AuthRepository
+import com.example.gpstracker.data.estimate.toNumbers
+import com.example.gpstracker.data.fake.FakeAuthRepository
 import com.example.gpstracker.data.fake.FakeDriveSimulator
 import com.example.gpstracker.ui.model.SettingsUiState
 import kotlinx.coroutines.CoroutineScope
@@ -14,9 +17,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 object AppContainer {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    /** The single fake producer behind the whole app. */
-    val simulator: FakeDriveSimulator = FakeDriveSimulator().also { it.start(appScope) }
-
-    /** Settings are kept in memory only for now. */
+    /** Settings and the vehicle profile are kept in memory only for now. */
     val settings = MutableStateFlow(SettingsUiState())
+
+    /** Fake accounts; replaced by a real implementation later. */
+    val auth: AuthRepository = FakeAuthRepository()
+
+    /** The single fake producer behind the whole app. */
+    val simulator: FakeDriveSimulator = FakeDriveSimulator(
+        vehicleProvider = { settings.value.vehicle.toNumbers() },
+    ).also { it.start(appScope) }
 }

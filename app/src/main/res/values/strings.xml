@@ -177,4 +177,55 @@
     <string name="password_show">Show password</string>
     <string name="password_hide">Hide password</string>
     <string name="error_cd">Error</string>
+
+    <!-- Auth -->
+    <string name="welcome_tagline">See how you drive. Drive safer, spend less on fuel.</string>
+    <string name="welcome_create">Create account</string>
+    <string name="welcome_sign_in">Sign in</string>
+    <string name="welcome_try_demo">Try the demo</string>
+    <string name="signin_title">Sign in</string>
+    <string name="field_email">Email</string>
+    <string name="field_password">Password</string>
+    <string name="field_name">Name</string>
+    <string name="field_confirm">Confirm password</string>
+    <string name="signin_forgot">Forgot password?</string>
+    <string name="signin_submit">Sign in</string>
+    <string name="signin_new_here">New here?</string>
+    <string name="signin_create">Create account</string>
+    <string name="forgot_snackbar">Password reset is not available in the demo yet.</string>
+    <string name="signup_title">Create account</string>
+    <string name="password_hint">At least 8 characters, with a letter and a number</string>
+    <string name="signup_privacy_checkbox">I agree that my trips are stored and analysed to give me feedback.</string>
+    <string name="signup_privacy_link">Privacy</string>
+    <string name="signup_submit">Create account</string>
+    <string name="signup_have_account">Already have an account?</string>
+    <string name="signup_sign_in">Sign in</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_body">Trips are stored on this phone. Your account is used only to sign in. No data is shared with third parties.</string>
+    <string name="error_name">Enter your name.</string>
+    <string name="error_email">Enter a valid email address.</string>
+    <string name="error_password">Use at least 8 characters with a letter and a number.</string>
+    <string name="error_confirm">Passwords do not match.</string>
+    <string name="error_credentials">Email or password is incorrect.</string>
+    <string name="error_email_taken">An account with this email already exists.</string>
+    <string name="error_consumption">Enter a value between 2.0 and 25.0.</string>
+    <string name="error_price">Enter a price above 0.</string>
+    <string name="error_monthly">Enter a distance above 0.</string>
+
+    <!-- Vehicle setup -->
+    <string name="vehicle_title">Your car</string>
+    <string name="vehicle_subtitle">Used only to estimate fuel and costs. You can change this later.</string>
+    <string name="fuel_type_petrol">Petrol</string>
+    <string name="fuel_type_diesel">Diesel</string>
+    <string name="vehicle_consumption">Average consumption</string>
+    <string name="vehicle_consumption_suffix">L/100 km</string>
+    <string name="vehicle_consumption_hint">Check your car\'s trip computer or manual.</string>
+    <string name="vehicle_price">Fuel price</string>
+    <string name="vehicle_price_prefix">€</string>
+    <string name="vehicle_price_suffix">per litre</string>
+    <string name="vehicle_price_hint">Leave empty to hide costs.</string>
+    <string name="vehicle_monthly">Kilometres per month</string>
+    <string name="vehicle_monthly_suffix">km</string>
+    <string name="vehicle_save">Save</string>
+    <string name="vehicle_skip">Skip for now</string>
 </resources>
