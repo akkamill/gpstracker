@@ -31,6 +31,9 @@ import com.example.gpstracker.ui.theme.Concrete
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import com.example.gpstracker.ui.theme.KerbHigh
 
+private const val MAX_SCORE = 100
+private const val THREE_DIGIT_SCALE = 0.75f
+
 enum class ScoreBadgeSize(val diameter: Dp) {
     Small(40.dp),
     Medium(72.dp),
@@ -49,10 +52,11 @@ fun ScoreBadge(
     val color = band.color()
     val label = stringResource(band.labelRes())
     val description = stringResource(R.string.score_cd, score, label)
-    val numberStyle = when (size) {
+    val baseStyle = when (size) {
         ScoreBadgeSize.Small -> MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp)
         else -> MaterialTheme.typography.displaySmall
     }
+    val numberStyle = if (score >= MAX_SCORE) baseStyle.copy(fontSize = baseStyle.fontSize * THREE_DIGIT_SCALE) else baseStyle
 
     Box(
         modifier = modifier
