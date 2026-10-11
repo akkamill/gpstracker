@@ -11,6 +11,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.gpstracker.data.fake.PreviewStates
@@ -20,6 +21,7 @@ import com.example.gpstracker.ui.crash.CrashAlertOverlay
 import com.example.gpstracker.ui.drive.DriveScreen
 import com.example.gpstracker.ui.insights.InsightsScreen
 import com.example.gpstracker.ui.model.CrashAlertUiState
+import com.example.gpstracker.ui.settings.SettingsScreen
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import com.example.gpstracker.ui.trips.TripsScreen
 import org.junit.Assert.assertEquals
@@ -118,8 +120,7 @@ class DriveMetricsUiTest {
     }
 
     @Test
-    fun emptyTripsShowsGoToDriveButton() {
-        var wentToDrive = false
+    fun emptyTripsExplainsThatTripsAreRecordedAutomatically() {
         rule.setContent {
             DriveMetricsTheme {
                 TripsScreen(
@@ -128,13 +129,56 @@ class DriveMetricsUiTest {
                     onTripClick = {},
                     onOpenSettings = {},
                     onCreateAccount = {},
-                    onGoToDrive = { wentToDrive = true },
+                    onOpenDrive = {},
                 )
             }
         }
         rule.onNodeWithText("No trips yet").assertIsDisplayed()
-        rule.onNodeWithText("Go to Drive").assertIsDisplayed().performClick()
-        assertTrue(wentToDrive)
+        rule.onNodeWithText("Trips are recorded automatically when your car is driving.").assertIsDisplayed()
+        rule.onNodeWithText("Go to Drive").assertDoesNotExist()
+    }
+
+    @Test
+    fun tripInProgressIsTheFirstRowAndOpensTheDashboard() {
+        var openedDrive = false
+        rule.setContent {
+            DriveMetricsTheme {
+                TripsScreen(
+                    PreviewStates.tripsDrivingNow,
+                    isGuest = false,
+                    onTripClick = {},
+                    onOpenSettings = {},
+                    onCreateAccount = {},
+                    onOpenDrive = { openedDrive = true },
+                )
+            }
+        }
+        rule.onNodeWithContentDescription("Driving now, started 14:05").assertIsDisplayed().performClick()
+        assertTrue(openedDrive)
+    }
+
+    @Test
+    fun settingsOffersTheTripEndSettingAndExplainsAutomaticTrips() {
+        rule.setContent {
+            DriveMetricsTheme {
+                SettingsScreen(
+                    state = PreviewStates.settingsSignedIn,
+                    onBack = {},
+                    onDataSourceChange = {},
+                    onServerUrlChange = {},
+                    onToleranceChange = {},
+                    onTripEndAfterChange = {},
+                    onCrashDetectionChange = {},
+                    onEmergencyContactChange = {},
+                    onEditVehicle = {},
+                    onTriggerTestCrash = {},
+                    onSignOut = {},
+                    onCreateAccount = {},
+                )
+            }
+        }
+        rule.onNodeWithText("End a trip after the car stands still for").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Trips start automatically when the car moves.").performScrollTo().assertIsDisplayed()
     }
 
     @Test
