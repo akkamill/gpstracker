@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.GpsOff
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ enum class BannerKind(val color: Color, val icon: ImageVector) {
     Reconnecting(DriveColors.warning, Icons.Rounded.Sync),
     GpsLost(DriveColors.danger, Icons.Rounded.GpsOff),
     Offline(DriveColors.danger, Icons.Rounded.CloudOff),
+    FormError(DriveColors.danger, Icons.Rounded.Error),
 }
 
 /** Full-width strip with an accent bar, an icon, one line of text and an optional action. */
