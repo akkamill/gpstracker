@@ -1,0 +1,1 @@
+Barlow fonts: Copyright 2017 The Barlow Project Authors, SIL Open Font License 1.1 (https://github.com/jpt/barlow).
