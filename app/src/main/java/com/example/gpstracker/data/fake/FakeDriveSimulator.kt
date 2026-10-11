@@ -1,5 +1,9 @@
 package com.example.gpstracker.data.fake
 
+import com.example.gpstracker.data.estimate.FuelEstimator
+import com.example.gpstracker.data.estimate.FuelInput
+import com.example.gpstracker.data.estimate.TripRecord
+import com.example.gpstracker.data.estimate.VehicleNumbers
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.DrivingEventUi
@@ -32,9 +36,11 @@ import kotlin.math.roundToInt
 class FakeDriveSimulator(
     private val clock: () -> Long = System::currentTimeMillis,
     private val tickMs: Long = TICK_MS,
+    private val vehicleProvider: () -> VehicleNumbers = { FakeData.demoVehicle.copy(fuelPricePerL = null) },
 ) {
     private val lock = Any()
     private val route = FakeData.route
+    private val estimator = FuelEstimator()
 
     private val _state = MutableStateFlow(
         DriveUiState(
@@ -50,6 +56,10 @@ class FakeDriveSimulator(
     val trips: StateFlow<TripsUiState> = _trips.asStateFlow()
 
     private val details = HashMap<String, TripDetailUi>(FakeData.tripDetails)
+
+    /** Finished trips as numbers, newest last; Insights are computed from these. */
+    private val _records = MutableStateFlow(FakeData.history(clock()))
+    val records: StateFlow<List<TripRecord>> = _records.asStateFlow()
 
     private var tick = 0L
     private var run: TripRun? = null
@@ -80,6 +90,7 @@ class FakeDriveSimulator(
         tripCounter++
         val summary = finished.toSummary(id = "trip-sim-$tripCounter", endMs = clock())
         details[summary.id] = finished.toDetail(summary)
+        _records.value = _records.value + finished.toRecord(summary)
         summaries = listOf(summary) + summaries
         _trips.value = buildTripsState(summaries)
         publish(snapshot = lastSnapshot)
@@ -139,6 +150,7 @@ class FakeDriveSimulator(
     private fun detectEvents(r: TripRun, cycleTick: Int, speed: Int, limit: Int, position: GeoPointUi) {
         if (speed - limit > OVER_LIMIT_TOLERANCE) {
             r.overTicks++
+            r.speedingTicks++
             if (r.overTicks >= SPEEDING_TICKS && !r.speedingFired) {
                 r.speedingFired = true
                 addEvent(r, EventType.Speeding, "Speeding", "$speed in a $limit zone", PENALTY_SPEEDING, position)
@@ -203,6 +215,7 @@ class FakeDriveSimulator(
         var speedSum = 0L
         var speedSamples = 0
         var overTicks = 0
+        var speedingTicks = 0
         var speedingFired = false
         var eventCounter = 0
         var latestEvent: DrivingEventUi? = null
@@ -234,14 +247,41 @@ class FakeDriveSimulator(
             )
         }
 
-        fun toDetail(summary: TripSummaryUi) = TripDetailUi(
-            summary = summary,
-            avgSpeedKmh = avgSpeed(),
-            maxSpeedKmh = maxSpeed,
-            route = route.toList().ifEmpty { FakeData.route.take(2) },
-            events = events.toList(),
-            tips = tipsFor(events),
+        fun toRecord(summary: TripSummaryUi) = TripRecord(
+            id = summary.id,
+            startMs = startMs,
+            distanceKm = distanceKm,
+            score = summary.score,
+            harshAccelerations = events.count { it.type == EventType.HarshAcceleration },
+            harshBrakings = events.count { it.type == EventType.HarshBraking },
+            speedingEvents = events.count { it.type == EventType.Speeding },
+            sharpCorners = events.count { it.type == EventType.SharpCorner },
+            speedingMinutes = speedingTicks * tickMs / MS_PER_MINUTE.toDouble(),
         )
+
+        fun toDetail(summary: TripSummaryUi): TripDetailUi {
+            val vehicle = vehicleProvider()
+            val record = toRecord(summary)
+            val estimate = estimator.estimate(
+                FuelInput(
+                    distanceKm = record.distanceKm,
+                    consumptionL100 = vehicle.consumptionL100,
+                    harshAccelerations = record.harshAccelerations,
+                    harshBrakings = record.harshBrakings,
+                    speedingMinutes = record.speedingMinutes,
+                    fuelType = vehicle.fuelType,
+                ),
+            )
+            return TripDetailUi(
+                summary = summary,
+                avgSpeedKmh = avgSpeed(),
+                maxSpeedKmh = maxSpeed,
+                route = route.toList().ifEmpty { FakeData.route.take(2) },
+                events = events.toList(),
+                fuel = estimate.toUi(vehicle.fuelPricePerL),
+                tips = tipsFor(events),
+            )
+        }
     }
 
     private fun buildTripsState(list: List<TripSummaryUi>): TripsUiState {
