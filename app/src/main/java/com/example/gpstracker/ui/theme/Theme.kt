@@ -17,6 +17,15 @@ private val DriveColorScheme = darkColorScheme(
     error = SignRed,
     onError = LineWhite,
     outline = KerbHigh,
+    secondary = NightBlue,
+    onSecondary = Asphalt,
+    secondaryContainer = KerbHigh,
+    onSecondaryContainer = LineWhite,
+    primaryContainer = KerbHigh,
+    onPrimaryContainer = LineWhite,
+    errorContainer = KerbHigh,
+    onErrorContainer = LineWhite,
+    outlineVariant = KerbHigh,
 )
 
 /**

@@ -117,4 +117,38 @@
     <string name="deductions_title">Where you lost points</string>
     <string name="deductions_none">No deductions on this trip.</string>
     <string name="tips_title">Tips for next time</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_data_source">Data source</string>
+    <string name="settings_source_replay">Demo replay</string>
+    <string name="settings_source_live">Live device</string>
+    <string name="settings_server_label">Server address</string>
+    <string name="settings_server_hint">WebSocket address of the relay server</string>
+    <string name="settings_server_error">Address must start with ws:// or wss://</string>
+    <string name="settings_section_scoring">Scoring</string>
+    <string name="settings_tolerance_title">Speeding tolerance</string>
+    <string name="settings_tolerance_zero">0</string>
+    <string name="settings_tolerance_plus">+%1$d km/h</string>
+    <string name="settings_tolerance_hint">Speed above the limit that is not penalised.</string>
+    <string name="settings_section_safety">Safety</string>
+    <string name="settings_crash_title">Crash detection</string>
+    <string name="settings_crash_hint">Shows a 10-second alert after a sudden stop.</string>
+    <string name="settings_contact_label">Emergency contact name</string>
+    <string name="settings_test_crash">Test crash alert</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_privacy_title">Privacy</string>
+    <string name="settings_privacy_body">Trips are stored only on this phone. No data is shared with third parties.</string>
+    <string name="settings_version">Version %1$s</string>
+
+    <!-- Crash alert -->
+    <string name="crash_default_contact">your emergency contact</string>
+    <string name="crash_im_ok">I\'m OK</string>
+    <string name="crash_send_now">Send alert now</string>
+    <string name="crash_sent">Alert sent (demo)</string>
+    <string name="crash_close">Close</string>
+    <plurals name="crash_alerting">
+        <item quantity="one">Alerting %1$s in %2$d second</item>
+        <item quantity="other">Alerting %1$s in %2$d seconds</item>
+    </plurals>
 </resources>
