@@ -29,7 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.PreviewStates
+import com.example.gpstracker.ui.components.AccountAvatar
 import com.example.gpstracker.ui.components.EmptyState
+import com.example.gpstracker.ui.components.GuestBanner
 import com.example.gpstracker.ui.components.ScoreBadge
 import com.example.gpstracker.ui.components.ScoreBadgeSize
 import com.example.gpstracker.ui.components.charts.Sparkline
@@ -43,17 +45,32 @@ import com.example.gpstracker.ui.theme.DriveMetricsTheme
 @Composable
 fun TripsScreen(
     state: TripsUiState,
+    isGuest: Boolean,
     onTripClick: (String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onCreateAccount: () -> Unit,
     onGoToDrive: () -> Unit,
     modifier: Modifier = Modifier,
+    avatarInitials: String? = null,
 ) {
     Column(modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.trips_title),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.trips_title),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f),
+            )
+            AccountAvatar(initials = avatarInitials, onClick = onOpenSettings)
+        }
+        if (isGuest) {
+            GuestBanner(onCreateAccount, Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+        }
         if (state.sections.isEmpty()) {
             EmptyState(
                 icon = Icons.Rounded.Route,
@@ -149,11 +166,19 @@ private const val BG = 0xFF0F1417
 @Preview(name = "Populated", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsPopulatedPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsPopulated, onTripClick = {}, onGoToDrive = {}) }
+    DriveMetricsTheme { TripsScreen(PreviewStates.tripsPopulated, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {}, avatarInitials = "KA") }
 }
 
 @Preview(name = "Empty", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsEmptyPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsEmpty, onTripClick = {}, onGoToDrive = {}) }
+    DriveMetricsTheme { TripsScreen(PreviewStates.tripsEmpty, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {}) }
+}
+
+@Preview(name = "Guest", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
+@Composable
+private fun TripsGuestPreview() {
+    DriveMetricsTheme {
+        TripsScreen(PreviewStates.tripsPopulated, isGuest = true, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {})
+    }
 }

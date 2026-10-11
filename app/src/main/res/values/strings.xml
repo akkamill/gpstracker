@@ -36,7 +36,7 @@
     <string name="event_crash">Possible crash</string>
     <string name="event_penalty">−%1$d</string>
     <string name="event_row_cd">%1$s, %2$s, minus %3$d points</string>
-    <string name="event_time_place">%1$s · %2$s</string>
+    <string name="event_time_place">%1$s, %2$s</string>
 
     <!-- Stats -->
     <string name="stat_none">—</string>
@@ -65,7 +65,7 @@
     <string name="banner_offline">Not connected. Check the server address in Settings.</string>
     <string name="score_start_prompt">Start a trip to get a score</string>
     <string name="score_title">Driving score</string>
-    <string name="score_summary">%1$s · %2$s</string>
+    <string name="score_summary">%1$s, %2$s</string>
     <string name="stat_distance">Distance</string>
     <string name="stat_time">Time</string>
     <string name="stat_events">Events</string>
@@ -79,16 +79,16 @@
     <string name="map_recenter_cd">Recenter map</string>
     <string name="map_empty_hint">Start a trip on the Drive tab to record your route.</string>
     <string name="map_over_limit">+%1$d</string>
-    <string name="map_summary">%1$s km · %2$s · %3$s</string>
+    <string name="map_summary">%1$s km, %2$s, %3$s</string>
 
     <!-- Trips -->
     <string name="trips_title">Trips</string>
     <string name="trips_week_title">This week</string>
-    <string name="trips_week_summary">Average score · %1$s</string>
+    <string name="trips_week_summary">Average score, %1$s</string>
     <string name="trips_empty_title">No trips yet</string>
     <string name="trips_empty_message">Start a trip on the Drive tab. Finished trips appear here.</string>
     <string name="trips_go_to_drive">Go to Drive</string>
-    <string name="trip_row_meta">%1$s · %2$s km · %3$s</string>
+    <string name="trip_row_meta">%1$s, %2$s km, %3$s</string>
     <string name="trip_row_cd">%1$s, %2$s, score %3$d, %4$s</string>
     <plurals name="trips_count">
         <item quantity="one">%d trip</item>
@@ -96,7 +96,7 @@
     </plurals>
 
     <!-- Trip detail -->
-    <string name="detail_subtitle">%1$s · %2$s</string>
+    <string name="detail_subtitle">%1$s, %2$s</string>
     <string name="back_cd">Back</string>
     <string name="verdict_perfect">A perfect drive. Nothing to improve.</string>
     <string name="verdict_good">Smooth drive with %1$s.</string>
@@ -243,4 +243,18 @@
     <string name="insights_empty_week">Finish at least 3 trips this week to compare your driving.</string>
     <string name="insights_empty_month">Finish at least 3 trips this month to compare your driving.</string>
     <string name="insights_go_to_drive">Go to Drive</string>
+
+    <!-- Settings v2 -->
+    <string name="nav_insights">Insights</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_vehicle">Vehicle and fuel</string>
+    <string name="settings_guest_text">You\'re using the demo.</string>
+    <string name="settings_vehicle_summary">%1$s, %2$s L/100 km, %3$s</string>
+    <string name="settings_vehicle_no_price">€—/L</string>
+    <string name="settings_vehicle_price">€%1$s/L</string>
+    <string name="signout_action">Sign out</string>
+    <string name="signout_title">Sign out?</string>
+    <string name="signout_body">Trips stay on this phone.</string>
+    <string name="signout_confirm">Sign out</string>
+    <string name="cancel">Cancel</string>
 </resources>

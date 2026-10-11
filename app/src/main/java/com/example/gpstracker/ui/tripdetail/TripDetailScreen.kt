@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.ui.components.EventRow
+import com.example.gpstracker.ui.components.FuelCard
 import com.example.gpstracker.ui.components.RouteMap
 import com.example.gpstracker.ui.components.ScoreBadge
 import com.example.gpstracker.ui.components.ScoreBadgeSize
@@ -51,6 +52,7 @@ fun TripDetailScreen(
     state: TripDetailUi,
     selectedEventId: String?,
     onEventClick: (String) -> Unit,
+    onSetFuelPrice: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,6 +93,12 @@ fun TripDetailScreen(
             StatsGrid(state)
             RouteCard(state, selectedEventId)
             Deductions(state, selectedEventId, onEventClick)
+            FuelCard(
+                estimate = state.fuel,
+                savedLabel = null,
+                projectionLabel = null,
+                onSetPrice = onSetFuelPrice,
+            )
             if (state.tips.isNotEmpty()) Tips(state.tips)
         }
     }
@@ -208,7 +216,7 @@ private const val BG = 0xFF0F1417
 @Composable
 private fun TripDetailEventsPreview() {
     DriveMetricsTheme {
-        TripDetailScreen(FakeData.tripWithEvents, selectedEventId = "e2", onEventClick = {}, onBack = {})
+        TripDetailScreen(FakeData.tripWithEvents, selectedEventId = "e2", onEventClick = {}, onSetFuelPrice = {}, onBack = {})
     }
 }
 
@@ -216,6 +224,20 @@ private fun TripDetailEventsPreview() {
 @Composable
 private fun TripDetailPerfectPreview() {
     DriveMetricsTheme {
-        TripDetailScreen(FakeData.perfectTrip, selectedEventId = null, onEventClick = {}, onBack = {})
+        TripDetailScreen(FakeData.perfectTrip, selectedEventId = null, onEventClick = {}, onSetFuelPrice = {}, onBack = {})
+    }
+}
+
+@Preview(name = "Fuel price not set", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=1200dp")
+@Composable
+private fun TripDetailNoPricePreview() {
+    DriveMetricsTheme {
+        TripDetailScreen(
+            state = FakeData.tripWithEvents.copy(fuel = FakeData.tripWithEvents.fuel.copy(wastedCostLabel = null)),
+            selectedEventId = null,
+            onEventClick = {},
+            onSetFuelPrice = {},
+            onBack = {},
+        )
     }
 }
