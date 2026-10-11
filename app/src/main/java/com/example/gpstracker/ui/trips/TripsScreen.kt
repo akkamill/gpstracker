@@ -32,7 +32,7 @@ import com.example.gpstracker.data.fake.PreviewStates
 import com.example.gpstracker.ui.components.EmptyState
 import com.example.gpstracker.ui.components.ScoreBadge
 import com.example.gpstracker.ui.components.ScoreBadgeSize
-import com.example.gpstracker.ui.components.Sparkline
+import com.example.gpstracker.ui.components.charts.Sparkline
 import com.example.gpstracker.ui.model.TripSummaryUi
 import com.example.gpstracker.ui.model.TripsUiState
 import com.example.gpstracker.ui.model.scoreBandOf
