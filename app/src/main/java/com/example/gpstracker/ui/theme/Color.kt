@@ -2,13 +2,19 @@ package com.example.gpstracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Background = Color(0xFF0E1116)
-val Surface = Color(0xFF171B22)
-val SurfaceHigh = Color(0xFF1F2530)
-val OnSurface = Color(0xFFE6E9EF)
-val OnSurfaceMuted = Color(0xFF8B94A5)
+val Asphalt = Color(0xFF0F1417)
+val Kerb = Color(0xFF182025)
+val KerbHigh = Color(0xFF222C32)
+val LineWhite = Color(0xFFEEF2F3)
+val Concrete = Color(0xFF93A1A8)
+val NightBlue = Color(0xFF4DA3FF)
+val SignalAmber = Color(0xFFFFB020)
+val SignRed = Color(0xFFD7263D)
+val GoGreen = Color(0xFF3DD68C)
 
-val Accent = Color(0xFF4DD0E1)
-val Safe = Color(0xFF4CD964)
-val Caution = Color(0xFFFFB84D)
-val Danger = Color(0xFFFF5C5C)
+/** Status colors, accessed directly rather than through Material roles. */
+object DriveColors {
+    val warning = SignalAmber
+    val danger = SignRed
+    val success = GoGreen
+}
