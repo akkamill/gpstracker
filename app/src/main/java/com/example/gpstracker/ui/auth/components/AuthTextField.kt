@@ -36,6 +36,8 @@ fun AuthTextField(
     imeAction: ImeAction = ImeAction.Next,
     onImeAction: () -> Unit = {},
     leadingIcon: ImageVector? = null,
+    prefix: String? = null,
+    suffix: String? = null,
     trailing: (@Composable () -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     enabled: Boolean = true,
@@ -49,6 +51,8 @@ fun AuthTextField(
         label = { Text(label) },
         isError = error != null,
         shape = MaterialTheme.shapes.small,
+        prefix = prefix?.let { text -> { Text(text) } },
+        suffix = suffix?.let { text -> { Text(text) } },
         leadingIcon = leadingIcon?.let { icon -> { Icon(icon, contentDescription = null) } },
         trailingIcon = when {
             error != null -> {
