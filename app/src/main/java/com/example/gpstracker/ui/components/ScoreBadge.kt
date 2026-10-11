@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.gpstracker.R
 import com.example.gpstracker.ui.model.ScoreBand
 import com.example.gpstracker.ui.model.scoreBandOf
@@ -49,7 +50,7 @@ fun ScoreBadge(
     val label = stringResource(band.labelRes())
     val description = stringResource(R.string.score_cd, score, label)
     val numberStyle = when (size) {
-        ScoreBadgeSize.Small -> MaterialTheme.typography.titleMedium
+        ScoreBadgeSize.Small -> MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp)
         else -> MaterialTheme.typography.displaySmall
     }
 

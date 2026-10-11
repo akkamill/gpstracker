@@ -91,4 +91,30 @@
     <string name="map_empty_hint">Start a trip on the Drive tab to record your route.</string>
     <string name="map_over_limit">+%1$d</string>
     <string name="map_summary">%1$s km · %2$s · %3$s</string>
+
+    <!-- Trips -->
+    <string name="trips_title">Trips</string>
+    <string name="trips_week_title">This week</string>
+    <string name="trips_week_summary">Average score · %1$s</string>
+    <string name="trips_empty_title">No trips yet</string>
+    <string name="trips_empty_message">Start a trip on the Drive tab. Finished trips appear here.</string>
+    <string name="trips_go_to_drive">Go to Drive</string>
+    <string name="trip_row_meta">%1$s · %2$s km · %3$s</string>
+    <string name="trip_row_cd">%1$s, %2$s, score %3$d, %4$s</string>
+    <plurals name="trips_count">
+        <item quantity="one">%d trip</item>
+        <item quantity="other">%d trips</item>
+    </plurals>
+
+    <!-- Trip detail -->
+    <string name="detail_subtitle">%1$s · %2$s</string>
+    <string name="back_cd">Back</string>
+    <string name="verdict_perfect">A perfect drive. Nothing to improve.</string>
+    <string name="verdict_good">Smooth drive with %1$s.</string>
+    <string name="verdict_other">Points were lost to %1$s on this trip.</string>
+    <string name="stat_duration">Duration</string>
+    <string name="stat_max_speed">Max speed</string>
+    <string name="deductions_title">Where you lost points</string>
+    <string name="deductions_none">No deductions on this trip.</string>
+    <string name="tips_title">Tips for next time</string>
 </resources>
