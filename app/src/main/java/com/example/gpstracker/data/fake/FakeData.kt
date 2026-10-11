@@ -1,7 +1,14 @@
 package com.example.gpstracker.data.fake
 
+import com.example.gpstracker.data.estimate.FuelEstimator
+import com.example.gpstracker.data.estimate.FuelInput
+import com.example.gpstracker.data.estimate.InsightsCalculator
+import com.example.gpstracker.data.estimate.TripRecord
+import com.example.gpstracker.data.estimate.VehicleNumbers
 import com.example.gpstracker.ui.model.DrivingEventUi
 import com.example.gpstracker.ui.model.EventType
+import com.example.gpstracker.ui.model.FuelEstimateUi
+import com.example.gpstracker.ui.model.FuelType
 import com.example.gpstracker.ui.model.GeoPointUi
 import com.example.gpstracker.ui.model.TripDetailUi
 import com.example.gpstracker.ui.model.TripSummaryUi
@@ -80,6 +87,23 @@ object FakeData {
         sections = trips.groupBy { it.dateLabel }.toList(),
     )
 
+    /** Demo vehicle used by canned data: petrol, 6.5 L/100 km, EUR 1.60 per litre. */
+    val demoVehicle = VehicleNumbers(FuelType.Petrol, 6.5, 1.60, 1000.0)
+
+    private val estimator = FuelEstimator()
+
+    private fun fuelFor(distanceKm: Double, events: List<DrivingEventUi>, speedingMinutes: Double): FuelEstimateUi =
+        estimator.estimate(
+            FuelInput(
+                distanceKm = distanceKm,
+                consumptionL100 = demoVehicle.consumptionL100,
+                harshAccelerations = events.count { it.type == EventType.HarshAcceleration },
+                harshBrakings = events.count { it.type == EventType.HarshBraking },
+                speedingMinutes = speedingMinutes,
+                fuelType = demoVehicle.fuelType,
+            ),
+        ).toUi(demoVehicle.fuelPricePerL)
+
     /** A trip with four deductions and three tips. */
     val tripWithEvents = TripDetailUi(
         summary = trips.first { it.id == "trip-3" },
@@ -87,6 +111,7 @@ object FakeData {
         maxSpeedKmh = 72,
         route = route,
         events = events,
+        fuel = fuelFor(distanceKm = 12.1, events = events, speedingMinutes = 2.0),
         tips = listOf(
             "Brake earlier before the Savanorių pr. junction.",
             "Keep to 50 on Savanorių pr.; you were 22 over at 14:19.",
@@ -94,13 +119,14 @@ object FakeData {
         ),
     )
 
-    /** A perfect trip: no events and no tips. */
+    /** A perfect trip: no events and no tips, so nothing was wasted. */
     val perfectTrip = TripDetailUi(
         summary = trips.first { it.id == "trip-1" },
         avgSpeedKmh = 30,
         maxSpeedKmh = 49,
         route = route,
         events = emptyList(),
+        fuel = fuelFor(distanceKm = 18.2, events = emptyList(), speedingMinutes = 0.0),
         tips = emptyList(),
     )
 
@@ -108,4 +134,40 @@ object FakeData {
         tripWithEvents.summary.id to tripWithEvents,
         perfectTrip.summary.id to perfectTrip,
     )
+
+    private const val WEEKS = 8
+    private const val WEEK_MS = InsightsCalculator.WEEK_MS
+    private const val GAP_WEEK = 2
+
+    /**
+     * Eight weeks of fake trips ending at [nowMs], getting better over time, with
+     * one week without trips so the trend chart shows a gap.
+     */
+    fun history(nowMs: Long): List<TripRecord> {
+        val records = mutableListOf<TripRecord>()
+        var seed = 7
+        for (week in 0 until WEEKS) {
+            if (week == GAP_WEEK) continue
+            val weekEnd = nowMs - (WEEKS - 1 - week) * WEEK_MS
+            val tripCount = 4 + week % 3
+            repeat(tripCount) { index ->
+                seed = (seed * 31 + 17) % 97
+                val score = (66 + week * 2.6 + seed % 9 - 4).toInt().coerceIn(35, 100)
+                val risk = (100 - score) / 8
+                val speeding = risk / 3 + seed % 2
+                records += TripRecord(
+                    id = "hist-$week-$index",
+                    startMs = weekEnd - WEEK_MS + (index + 1) * WEEK_MS / (tripCount + 1),
+                    distanceKm = 8.0 + seed % 15,
+                    score = score,
+                    harshAccelerations = (risk + 1) / 4,
+                    harshBrakings = risk / 3,
+                    speedingEvents = speeding,
+                    sharpCorners = risk / 4,
+                    speedingMinutes = speeding * 1.5,
+                )
+            }
+        }
+        return records
+    }
 }
