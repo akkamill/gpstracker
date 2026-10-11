@@ -63,4 +63,10 @@
     <string name="trip_hold_hint">Hold to end trip</string>
     <string name="trip_waiting">Waiting for connection</string>
     <string name="trip_hold_action">End trip</string>
+
+    <!-- Navigation -->
+    <string name="nav_drive">Drive</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_trips">Trips</string>
+    <string name="nav_settings">Settings</string>
 </resources>
