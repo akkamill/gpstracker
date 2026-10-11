@@ -1,3 +1,29 @@
 <resources>
     <string name="app_name">gpstracker</string>
+
+    <string name="status_live">Live</string>
+    <string name="status_connecting">Connecting to vehicle…</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_reconnecting">Connection lost, reconnecting…</string>
+
+    <string name="gauge_unit">km/h</string>
+    <string name="gauge_description">Speed %1$d kilometres per hour</string>
+    <string name="score_label">Driving score</string>
+    <string name="stat_distance">Distance</string>
+    <string name="stat_max_speed">Max speed</string>
+    <string name="stat_distance_value">%1$.1f km</string>
+    <string name="stat_max_speed_value">%1$d km/h</string>
+
+    <string name="map_title">Live position</string>
+    <string name="map_placeholder">Map preview, coming soon</string>
+    <string name="map_waiting">Waiting for GPS fix…</string>
+    <string name="map_coordinates">%1$.5f, %2$.5f</string>
+
+    <string name="events_title">Recent events</string>
+    <string name="events_empty">No events yet. Smooth driving!</string>
+    <string name="event_hard_braking">Hard braking</string>
+    <string name="event_hard_acceleration">Hard acceleration</string>
+    <string name="event_speeding">Speeding</string>
+    <string name="event_when">%1$d s ago</string>
+    <string name="event_penalty">-%1$d</string>
 </resources>
