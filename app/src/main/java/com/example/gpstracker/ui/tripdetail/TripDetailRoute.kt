@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun TripDetailRoute(
     tripId: String,
     onBack: () -> Unit,
+    onSetFuelPrice: () -> Unit,
     viewModel: TripDetailViewModel = viewModel(key = tripId) { TripDetailViewModel(tripId) },
 ) {
     val selected by viewModel.selectedEventId.collectAsStateWithLifecycle()
@@ -16,6 +17,7 @@ fun TripDetailRoute(
         state = viewModel.detail,
         selectedEventId = selected,
         onEventClick = viewModel::onEventClick,
+        onSetFuelPrice = onSetFuelPrice,
         onBack = onBack,
     )
 }

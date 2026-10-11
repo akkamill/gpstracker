@@ -18,15 +18,27 @@ a built-in simulator, so the whole app can be demoed without a car, GPS or serve
 | **Drive** | Live speed gauge, speed limit sign, driving score, distance/time/events, start and end trip |
 | **Map** | The route so far, event markers and the current position (drawn on a canvas, no API key) |
 | **Trips** | Weekly average score, a sparkline and the history grouped by day |
-| **Trip detail** | Score, stats, route with event markers, "where you lost points" and coaching tips |
-| **Settings** | Data source, speeding tolerance, crash detection, emergency contact, privacy note |
+| **Trip detail** | Score, stats, route with event markers, "where you lost points", fuel estimate and coaching tips |
+| **Insights** | You against a simulated benchmark driver: score trend, events per 100 km, fuel and money estimate |
+| **Welcome, Sign in, Sign up** | Account flow with validation, privacy consent and a "Try the demo" guest mode |
+| **Vehicle setup** | Fuel type, consumption, fuel price and monthly distance, used for estimates |
+| **Settings** | Account, vehicle, data source, speeding tolerance, crash detection, privacy, how estimates work |
 | **Crash alert** | Full-screen 10-second countdown with "I'm OK" and "Send alert now" |
 
 ## Demo mode
 
-On launch the simulator starts driving a looping route through Kaunas. Tap **Start trip** and
-within about two minutes you will see speeding, an event banner, a reconnecting banner and a
-GPS-lost banner. End the trip (hold the button for one second) and it appears in **Trips**.
+Choose **Try the demo** on the welcome screen, or sign in with the demo account
+`demo@drivemetrics.app` / `demo1234` (accounts are in memory only and reset when the app closes).
+
+The simulator drives a looping route through Kaunas. Tap **Start trip** and within about two
+minutes you will see speeding, an event banner, a reconnecting banner and a GPS-lost banner.
+End the trip (hold the button for one second) and it appears in **Trips** and changes **Insights**.
+
+### Honest numbers
+
+Fuel, money and CO2 values are **estimates** from a simple, documented model
+(`data/estimate/FuelModelConfig.kt`). The benchmark is a **simulated** typical driver built from
+fixed assumptions, not data from real drivers, and the UI always says so.
 
 ## Project structure
 

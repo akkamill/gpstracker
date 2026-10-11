@@ -16,7 +16,10 @@ import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.gpstracker.data.fake.PreviewStates
 import com.example.gpstracker.ui.crash.CrashAlertOverlay
+import com.example.gpstracker.ui.auth.signin.SignInScreen
+import com.example.gpstracker.ui.auth.signup.SignUpScreen
 import com.example.gpstracker.ui.drive.DriveScreen
+import com.example.gpstracker.ui.insights.InsightsScreen
 import com.example.gpstracker.ui.model.CrashAlertUiState
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import com.example.gpstracker.ui.trips.TripsScreen
@@ -64,7 +67,14 @@ class DriveMetricsUiTest {
         var wentToDrive = false
         rule.setContent {
             DriveMetricsTheme {
-                TripsScreen(PreviewStates.tripsEmpty, onTripClick = {}, onGoToDrive = { wentToDrive = true })
+                TripsScreen(
+                    PreviewStates.tripsEmpty,
+                    isGuest = false,
+                    onTripClick = {},
+                    onOpenSettings = {},
+                    onCreateAccount = {},
+                    onGoToDrive = { wentToDrive = true },
+                )
             }
         }
         rule.onNodeWithText("No trips yet").assertIsDisplayed()
@@ -100,5 +110,47 @@ class DriveMetricsUiTest {
         rule.onNodeWithText("End trip").assertIsDisplayed()
         rule.onNodeWithText("Driving score").assertIsDisplayed()
     }
-}
 
+    @Test
+    fun signInShowsWrongPasswordError() {
+        rule.setContent {
+            DriveMetricsTheme {
+                SignInScreen(PreviewStates.signInWrongPassword, {}, {}, {}, {}, {}, {}, {})
+            }
+        }
+        rule.onNodeWithText("Email or password is incorrect.").assertIsDisplayed()
+    }
+
+    @Test
+    fun signUpShowsFieldErrors() {
+        rule.setContent {
+            DriveMetricsTheme {
+                SignUpScreen(PreviewStates.signUpErrors, {}, {}, {}, {}, {}, {}, {}, {}, {})
+            }
+        }
+        rule.onNodeWithText("Enter your name.").assertIsDisplayed()
+        rule.onNodeWithText("Passwords do not match.").assertIsDisplayed()
+    }
+
+    @Test
+    fun insightsAsksForMoreTripsWhenThereAreFewerThanThree() {
+        rule.setContent {
+            DriveMetricsTheme {
+                InsightsScreen(PreviewStates.insightsNotEnoughData, false, {}, {}, {}, {}, {})
+            }
+        }
+        rule.onNodeWithText("Not enough trips yet").assertIsDisplayed()
+        rule.onNodeWithText("Go to Drive").assertIsDisplayed()
+    }
+
+    @Test
+    fun insightsLabelsTheBenchmarkAsSimulated() {
+        rule.setContent {
+            DriveMetricsTheme {
+                InsightsScreen(PreviewStates.insightsWeekBetter, false, {}, {}, {}, {}, {})
+            }
+        }
+        rule.onNodeWithText("Simulated benchmark").assertIsDisplayed()
+        rule.onNodeWithText("Estimates based on your vehicle settings.").assertExists()
+    }
+}
