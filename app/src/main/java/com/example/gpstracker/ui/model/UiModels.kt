@@ -61,7 +61,13 @@ private const val OVER_LIMIT_TOLERANCE_KMH = 5
 data class DriveUiState(
     val connection: ConnectionStatus = ConnectionStatus.Connecting,
     val gps: GpsStatus = GpsStatus.Good,
-    val isTripActive: Boolean = false,
+    val vehicleState: VehicleState = VehicleState.Parked,
+    /** "Trip started 14:05"; null when parked. */
+    val tripStartedLabel: String? = null,
+    /** Shown on the dashboard while parked. */
+    val lastTrip: TripSummaryUi? = null,
+    /** Set once when a trip has just ended by itself; drives the "Trip saved" banner. */
+    val tripJustSaved: TripSummaryUi? = null,
     val speedKmh: Int = 0,
     val speedLimitKmh: Int? = null,
     val score: Int = 100,
@@ -74,9 +80,14 @@ data class DriveUiState(
     val events: List<DrivingEventUi> = emptyList(),
     val avgSpeedKmh: Int = 0,
     val retryInSeconds: Int = 4,
+    /** Where the car is now (also its parked position). */
+    val position: GeoPointUi? = null,
+    /** Route of the most recent finished trip, drawn dimmed on the map while parked. */
+    val lastTripRoute: List<GeoPointUi> = emptyList(),
 ) {
     val overLimitBy: Int get() = speedLimitKmh?.let { (speedKmh - it).coerceAtLeast(0) } ?: 0
     val isOverLimit: Boolean get() = overLimitBy > OVER_LIMIT_TOLERANCE_KMH
+    val isTripInProgress: Boolean get() = vehicleState != VehicleState.Parked
 }
 
 data class TripSummaryUi(
@@ -115,6 +126,8 @@ data class TripDetailUi(
 )
 
 data class TripsUiState(
+    /** "Driving now, started 14:05"; null when parked. */
+    val tripInProgressLabel: String? = null,
     val weekAverageScore: Int? = null,
     val weekScores: List<Int> = emptyList(),
     val sections: List<Pair<String, List<TripSummaryUi>>> = emptyList(),
@@ -134,6 +147,8 @@ data class SettingsUiState(
     val dataSource: DataSource = DataSource.Replay,
     val serverUrl: String = "ws://10.0.2.2:8080/telemetry",
     val speedTolerance: Int = 5,
+    /** The car must stand still this long before a trip ends: 2, 5 or 10 minutes. */
+    val tripEndAfterMinutes: Int = 5,
     val crashDetectionEnabled: Boolean = true,
     val emergencyContactName: String = "",
     val vehicle: VehicleProfileUi = VehicleProfileUi(),
