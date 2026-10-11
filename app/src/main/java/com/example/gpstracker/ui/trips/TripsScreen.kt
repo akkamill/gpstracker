@@ -4,12 +4,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -26,7 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.example.gpstracker.ui.theme.NightBlue
 import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.PreviewStates
 import com.example.gpstracker.ui.components.AccountAvatar
@@ -49,7 +54,7 @@ fun TripsScreen(
     onTripClick: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onCreateAccount: () -> Unit,
-    onGoToDrive: () -> Unit,
+    onOpenDrive: () -> Unit,
     modifier: Modifier = Modifier,
     avatarInitials: String? = null,
 ) {
@@ -71,18 +76,20 @@ fun TripsScreen(
         if (isGuest) {
             GuestBanner(onCreateAccount, Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         }
-        if (state.sections.isEmpty()) {
+        val inProgress = state.tripInProgressLabel
+        if (state.sections.isEmpty() && inProgress == null) {
             EmptyState(
                 icon = Icons.Rounded.Route,
                 title = stringResource(R.string.trips_empty_title),
                 message = stringResource(R.string.trips_empty_message),
-                actionLabel = stringResource(R.string.trips_go_to_drive),
-                onAction = onGoToDrive,
                 modifier = Modifier.padding(top = 48.dp),
             )
             return@Column
         }
         LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            if (inProgress != null) {
+                item(key = "in-progress") { InProgressRow(inProgress, onOpenDrive) }
+            }
             item { WeekCard(state, Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
             state.sections.forEach { (label, trips) ->
                 stickyHeader(key = label) {
@@ -99,6 +106,34 @@ fun TripsScreen(
                 items(trips, key = { it.id }) { trip -> TripRow(trip) { onTripClick(trip.id) } }
             }
         }
+    }
+}
+
+@Composable
+private fun InProgressRow(label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 72.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .semantics(mergeDescendants = true) { contentDescription = label },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(12.dp).clip(CircleShape).background(NightBlue))
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -166,19 +201,35 @@ private const val BG = 0xFF0F1417
 @Preview(name = "Populated", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsPopulatedPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsPopulated, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {}, avatarInitials = "KA") }
+    DriveMetricsTheme { TripsScreen(PreviewStates.tripsPopulated, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {}, avatarInitials = "KA") }
 }
 
 @Preview(name = "Empty", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsEmptyPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsEmpty, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {}) }
+    DriveMetricsTheme { TripsScreen(PreviewStates.tripsEmpty, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {}) }
 }
 
 @Preview(name = "Guest", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsGuestPreview() {
     DriveMetricsTheme {
-        TripsScreen(PreviewStates.tripsPopulated, isGuest = true, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onGoToDrive = {})
+        TripsScreen(PreviewStates.tripsPopulated, isGuest = true, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {})
+    }
+}
+
+@Preview(name = "Driving now", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
+@Composable
+private fun TripsDrivingNowPreview() {
+    DriveMetricsTheme {
+        TripsScreen(
+            PreviewStates.tripsDrivingNow,
+            isGuest = false,
+            onTripClick = {},
+            onOpenSettings = {},
+            onCreateAccount = {},
+            onOpenDrive = {},
+            avatarInitials = "KA",
+        )
     }
 }

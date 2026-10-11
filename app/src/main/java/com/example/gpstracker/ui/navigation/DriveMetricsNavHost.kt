@@ -103,7 +103,7 @@ fun DriveMetricsNavHost(
                         sessionViewModel.signOut()
                         leaveToAuth(SignUpDestination)
                     },
-                    onGoToDrive = { navController.navigateToTab(TopLevelDestination.Drive) },
+                    onOpenDrive = { navController.navigateToTab(TopLevelDestination.Drive) },
                 )
             }
             composable<InsightsDestination> {
@@ -114,7 +114,7 @@ fun DriveMetricsNavHost(
                         sessionViewModel.signOut()
                         leaveToAuth(SignUpDestination)
                     },
-                    onGoToDrive = { navController.navigateToTab(TopLevelDestination.Drive) },
+
                 )
             }
             composable<SettingsDestination> {

@@ -61,7 +61,6 @@ fun InsightsScreen(
     onAboutBenchmark: () -> Unit,
     modifier: Modifier = Modifier,
     avatarInitials: String? = null,
-    onGoToDrive: () -> Unit = {},
 ) {
     var showBenchmarkInfo by remember { mutableStateOf(false) }
 
@@ -103,8 +102,6 @@ fun InsightsScreen(
                 message = stringResource(
                     if (state.period == InsightsPeriod.Week) R.string.insights_empty_week else R.string.insights_empty_month,
                 ),
-                actionLabel = stringResource(R.string.insights_go_to_drive),
-                onAction = onGoToDrive,
             )
         } else {
             ScoreComparison(state, onInfoClick = {

@@ -13,7 +13,6 @@ fun InsightsRoute(
     onOpenSettings: () -> Unit,
     onSetFuelPrice: () -> Unit,
     onCreateAccount: () -> Unit,
-    onGoToDrive: () -> Unit,
     viewModel: InsightsViewModel = viewModel(),
     sessionViewModel: SessionViewModel = viewModel(),
 ) {
@@ -29,6 +28,5 @@ fun InsightsRoute(
         onCreateAccount = onCreateAccount,
         onAboutBenchmark = {},
         avatarInitials = (session as? SessionState.SignedIn)?.let { initialsOf(it.name) },
-        onGoToDrive = onGoToDrive,
     )
 }

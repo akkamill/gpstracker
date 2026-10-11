@@ -13,7 +13,7 @@ fun TripsRoute(
     onTripClick: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onCreateAccount: () -> Unit,
-    onGoToDrive: () -> Unit,
+    onOpenDrive: () -> Unit,
     viewModel: TripsViewModel = viewModel(),
     sessionViewModel: SessionViewModel = viewModel(),
 ) {
@@ -26,7 +26,7 @@ fun TripsRoute(
         onTripClick = onTripClick,
         onOpenSettings = onOpenSettings,
         onCreateAccount = onCreateAccount,
-        onGoToDrive = onGoToDrive,
+        onOpenDrive = onOpenDrive,
         avatarInitials = (session as? SessionState.SignedIn)?.let { initialsOf(it.name) },
     )
 }
