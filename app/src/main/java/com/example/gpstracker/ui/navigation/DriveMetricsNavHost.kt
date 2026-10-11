@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.gpstracker.data.fake.PreviewStates
+import com.example.gpstracker.ui.drive.DriveScreen
 
 /**
  * All destinations. The screens are placeholders in this step and are
@@ -29,7 +31,14 @@ fun DriveMetricsNavHost(
         startDestination = DriveDestination,
         modifier = modifier,
     ) {
-        composable<DriveDestination> { PlaceholderScreen("Drive") }
+        composable<DriveDestination> {
+            DriveScreen(
+                state = PreviewStates.driveActive,
+                onStartTrip = {},
+                onStopTrip = {},
+                onOpenSettings = { navController.navigate(SettingsDestination) },
+            )
+        }
         composable<MapDestination> { PlaceholderScreen("Map") }
         composable<TripsDestination> {
             PlaceholderScreen("Trips") {

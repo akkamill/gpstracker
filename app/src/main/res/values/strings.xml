@@ -69,4 +69,20 @@
     <string name="nav_map">Map</string>
     <string name="nav_trips">Trips</string>
     <string name="nav_settings">Settings</string>
+
+    <!-- Drive screen -->
+    <string name="banner_reconnecting">Connection lost. Trying again in %1$d s.</string>
+    <string name="banner_gps_lost">GPS signal lost. Score paused until it returns.</string>
+    <string name="banner_offline">Not connected. Check the server address in Settings.</string>
+    <string name="score_start_prompt">Start a trip to get a score</string>
+    <string name="score_title">Driving score</string>
+    <string name="score_summary">%1$s · %2$s</string>
+    <string name="stat_distance">Distance</string>
+    <string name="stat_time">Time</string>
+    <string name="stat_events">Events</string>
+    <string name="stat_avg_speed">Avg speed</string>
+    <plurals name="events_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
 </resources>
