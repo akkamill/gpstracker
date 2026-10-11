@@ -228,4 +228,19 @@
     <string name="vehicle_monthly_suffix">km</string>
     <string name="vehicle_save">Save</string>
     <string name="vehicle_skip">Skip for now</string>
+
+    <!-- Insights -->
+    <string name="insights_title">Insights</string>
+    <string name="period_week">Week</string>
+    <string name="period_month">Month</string>
+    <string name="insights_you">You</string>
+    <string name="insights_benchmark">Benchmark driver</string>
+    <string name="benchmark_info_cd">About the benchmark</string>
+    <string name="benchmark_info">The benchmark is a simulated typical driver built from fixed assumptions in this app. It is not real data from other drivers. In a future version it could be the anonymous average of all app users.</string>
+    <string name="insights_trend_title">Score over time</string>
+    <string name="insights_compare_title">Compared with the benchmark</string>
+    <string name="insights_empty_title">Not enough trips yet</string>
+    <string name="insights_empty_week">Finish at least 3 trips this week to compare your driving.</string>
+    <string name="insights_empty_month">Finish at least 3 trips this month to compare your driving.</string>
+    <string name="insights_go_to_drive">Go to Drive</string>
 </resources>
