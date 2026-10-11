@@ -8,14 +8,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 /** Connects [DriveScreen] to its ViewModel. The screen itself never sees the ViewModel. */
 @Composable
 fun DriveRoute(
+    onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
     viewModel: DriveViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     DriveScreen(
         state = state,
-        onStartTrip = viewModel::startTrip,
-        onStopTrip = viewModel::stopTrip,
+        onOpenTrip = onOpenTrip,
         onOpenSettings = onOpenSettings,
     )
 }

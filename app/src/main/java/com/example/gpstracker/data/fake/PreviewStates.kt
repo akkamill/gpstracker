@@ -16,20 +16,32 @@ import com.example.gpstracker.ui.model.ScoreBand
 import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.TripsUiState
+import com.example.gpstracker.ui.model.VehicleState
 
 /** Canned states used by `@Preview`s and UI tests. Screens never build fake data inline. */
 object PreviewStates {
 
-    val driveIdle = DriveUiState(
+    /** Parked with a finished trip to show on the dashboard. */
+    val driveParked = DriveUiState(
         connection = ConnectionStatus.Replay,
-        speedKmh = 0,
-        speedLimitKmh = 50,
-        route = FakeData.route.take(1),
+        vehicleState = VehicleState.Parked,
+        lastTrip = FakeData.trips[1],
+        position = FakeData.route.last(),
+        lastTripRoute = FakeData.route,
     )
 
-    val driveActive = DriveUiState(
+    /** Parked and no trip has ever been recorded. */
+    val driveFirstUse = DriveUiState(
         connection = ConnectionStatus.Replay,
-        isTripActive = true,
+        vehicleState = VehicleState.Parked,
+        position = FakeData.route.first(),
+    )
+
+    val driveDriving = DriveUiState(
+        connection = ConnectionStatus.Replay,
+        vehicleState = VehicleState.Driving,
+        tripStartedLabel = "Trip started 14:05",
+        lastTrip = FakeData.trips[1],
         speedKmh = 48,
         speedLimitKmh = 50,
         score = 74,
@@ -40,23 +52,27 @@ object PreviewStates {
         avgSpeedKmh = 36,
         route = FakeData.route.take(50),
         events = FakeData.events.take(3),
+        position = FakeData.route[49],
+        lastTripRoute = FakeData.route,
     )
 
-    val driveOverLimit = driveActive.copy(speedKmh = 72)
+    val driveOverLimit = driveDriving.copy(speedKmh = 72)
 
-    val driveEventBanner = driveActive.copy(latestEvent = FakeData.events.first())
+    val driveEventBanner = driveDriving.copy(latestEvent = FakeData.events.first())
 
-    val driveReconnecting = driveActive.copy(connection = ConnectionStatus.Reconnecting)
+    /** Trip in progress but the car is standing, for example at a traffic light. */
+    val driveStopped = driveDriving.copy(vehicleState = VehicleState.Stopped, speedKmh = 0)
 
-    val driveGpsLost = driveActive.copy(gps = GpsStatus.Lost)
+    /** The trip has just ended by itself: parked, with the "Trip saved" banner. */
+    val driveTripSaved = driveParked.copy(tripJustSaved = FakeData.trips[1])
 
-    val driveOffline = DriveUiState(
-        connection = ConnectionStatus.Offline,
-        speedKmh = 0,
-        speedLimitKmh = 50,
-    )
+    val driveReconnecting = driveDriving.copy(connection = ConnectionStatus.Reconnecting)
 
-    val driveUnknownLimit = driveActive.copy(speedLimitKmh = null)
+    val driveGpsLost = driveDriving.copy(gps = GpsStatus.Lost)
+
+    val driveOffline = driveDriving.copy(connection = ConnectionStatus.Offline)
+
+    val driveUnknownLimit = driveDriving.copy(speedLimitKmh = null)
 
     val tripsPopulated: TripsUiState = FakeData.tripsState
 

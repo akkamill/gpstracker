@@ -6,13 +6,12 @@ import com.example.gpstracker.data.fake.FakeDriveSimulator
 import com.example.gpstracker.ui.model.DriveUiState
 import kotlinx.coroutines.flow.StateFlow
 
-/** Thin bridge from the simulator to the Drive and Map screens. */
+/**
+ * Bridge from the simulator to the Drive and Map screens. Read-only: there is
+ * nothing to start or stop, because trips are detected from the car's data.
+ */
 class DriveViewModel(
-    private val simulator: FakeDriveSimulator = AppContainer.simulator,
+    simulator: FakeDriveSimulator = AppContainer.simulator,
 ) : ViewModel() {
     val state: StateFlow<DriveUiState> = simulator.state
-
-    fun startTrip() = simulator.startTrip()
-
-    fun stopTrip() = simulator.stopTrip()
 }
