@@ -71,6 +71,56 @@ Requirements: Android Studio (or JDK 17 and the Android SDK) and an emulator or 
 ./gradlew connectedDebugAndroidTest             # UI tests (device needed)
 ```
 
+## Run it on your computer (emulator)
+
+1. Open the project in Android Studio and let Gradle sync.
+2. **Tools → Device Manager → Create device** (any phone, API 34 or newer image).
+3. Start the emulator, pick it in the device dropdown and press **Run**.
+
+From a terminal, with an emulator already running: `./gradlew installDebug`.
+
+## Run it on a physical phone
+
+The app works fully offline (the data is simulated), so a phone and a USB cable are all you need.
+It supports Android 7.0 (API 24) and newer.
+
+**1. Prepare the phone (once)**
+
+1. **Settings → About phone**, tap **Build number** 7 times to enable Developer options.
+2. **Settings → System → Developer options**, turn on **USB debugging**.
+3. Plug the phone into the computer with a data-capable USB cable.
+4. Accept the **Allow USB debugging?** prompt on the phone (tick *Always allow*).
+
+**2. Check the computer sees it**
+
+```bash
+adb devices
+```
+
+Your phone should be listed with the word `device` next to it.
+`adb` lives in `<Android SDK>/platform-tools`
+(on Windows usually `%LOCALAPPDATA%\Android\Sdk\platform-tools`).
+
+**3. Install and launch**
+
+- Android Studio: choose the phone in the device dropdown and press **Run**, or
+- Terminal: `./gradlew installDebug`, then open **DriveMetrics** from the app drawer.
+
+If an emulator is running too, close it or install to one device only:
+`adb -s <serial> install -r app/build/outputs/apk/debug/app-debug.apk`.
+
+**Wireless (optional, Android 11+):** Developer options → **Wireless debugging**, then pair
+using **Pair Devices Using Wi-Fi** in Android Studio.
+
+### Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `adb devices` shows `unauthorized` | Unlock the phone and accept the USB debugging prompt |
+| Phone not listed at all | Try another cable or port (many cables only charge); install your phone maker's USB driver on Windows |
+| `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | Uninstall the old copy: `adb uninstall com.example.gpstracker` |
+| App crashes on start | `adb logcat -s AndroidRuntime:E` and open an issue with the output |
+
 ## Status
 
 - Done: full UI, navigation, simulator, unit and UI tests.
