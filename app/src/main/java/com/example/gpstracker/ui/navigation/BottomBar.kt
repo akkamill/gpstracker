@@ -18,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import com.example.gpstracker.R
 import com.example.gpstracker.ui.theme.Asphalt
 import com.example.gpstracker.ui.theme.Concrete
@@ -41,6 +43,15 @@ enum class TopLevelDestination(
 /** True when this destination, or one of its parents, is the tab's route. */
 fun NavDestination?.isInTab(tab: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(tab.routeClass) } == true
+
+/** Switches tab, keeping each tab's saved state and avoiding duplicate entries. */
+fun NavHostController.navigateToTab(tab: TopLevelDestination) {
+    navigate(tab.route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
 @Composable
 fun DriveBottomBar(
