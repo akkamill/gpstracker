@@ -12,4 +12,55 @@
     <string name="showcase_sample_secondary">Secondary text</string>
     <string name="showcase_sample_button">Button label</string>
     <string name="showcase_sample_unit">km/h</string>
+
+    <!-- Speed limit sign and gauge -->
+    <string name="sign_unknown_cd">Speed limit unknown</string>
+    <string name="sign_limit_cd">Speed limit %1$d kilometers per hour</string>
+    <string name="sign_unknown_text">—</string>
+    <string name="gauge_unit">km/h</string>
+    <string name="gauge_over">+%1$d over limit</string>
+    <string name="gauge_cd">Speed %1$d kilometers per hour, limit %2$d, %3$d over limit</string>
+    <string name="gauge_cd_within">Speed %1$d kilometers per hour, limit %2$d</string>
+    <string name="gauge_cd_unknown">Speed %1$d kilometers per hour, limit unknown</string>
+
+    <!-- Score -->
+    <string name="score_good">Good</string>
+    <string name="score_fair">Fair</string>
+    <string name="score_risky">Risky</string>
+    <string name="score_cd">Driving score %1$d, %2$s</string>
+
+    <!-- Status chips -->
+    <string name="conn_live">Live</string>
+    <string name="conn_replay">Demo replay</string>
+    <string name="conn_connecting">Connecting…</string>
+    <string name="conn_reconnecting">Reconnecting…</string>
+    <string name="conn_offline">Offline</string>
+    <string name="gps_good">GPS</string>
+    <string name="gps_weak">Weak GPS</string>
+    <string name="gps_lost">No GPS</string>
+
+    <!-- Events -->
+    <string name="event_speeding">Speeding</string>
+    <string name="event_harsh_braking">Harsh braking</string>
+    <string name="event_harsh_acceleration">Harsh acceleration</string>
+    <string name="event_sharp_corner">Sharp corner</string>
+    <string name="event_crash">Possible crash</string>
+    <string name="event_penalty">−%1$d</string>
+    <string name="event_row_cd">%1$s, %2$s, minus %3$d points</string>
+    <string name="event_time_place">%1$s · %2$s</string>
+
+    <!-- Stats -->
+    <string name="stat_none">—</string>
+    <string name="unit_km">km</string>
+
+    <!-- Map -->
+    <string name="map_preview_label">Map preview</string>
+    <string name="map_current_position">Current position</string>
+
+    <!-- Trip button -->
+    <string name="trip_start">Start trip</string>
+    <string name="trip_end">End trip</string>
+    <string name="trip_hold_hint">Hold to end trip</string>
+    <string name="trip_waiting">Waiting for connection</string>
+    <string name="trip_hold_action">End trip</string>
 </resources>
