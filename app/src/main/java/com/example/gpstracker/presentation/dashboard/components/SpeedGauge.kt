@@ -7,6 +7,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -59,19 +60,20 @@ fun SpeedGauge(speedKmh: Int, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
+            .aspectRatio(1.2f)
             .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Canvas(modifier = Modifier.fillMaxWidth().aspectRatio(1f).padding(16.dp)) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             val stroke = Stroke(width = 28.dp.toPx(), cap = StrokeCap.Round)
             val inset = stroke.width / 2
-            val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
+            val diameter = size.width - stroke.width
+            val arcSize = Size(diameter, diameter)
             val topLeft = Offset(inset, inset)
             drawArc(trackColor, START_ANGLE, SWEEP_ANGLE, false, topLeft, arcSize, style = stroke)
             drawArc(arcColor, START_ANGLE, SWEEP_ANGLE * fraction, false, topLeft, arcSize, style = stroke)
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier.padding(top = 96.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = speedKmh.toString(),
                 fontSize = 88.sp,
