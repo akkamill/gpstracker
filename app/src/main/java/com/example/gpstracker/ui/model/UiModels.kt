@@ -16,6 +16,18 @@ enum class EventType { Speeding, HarshBraking, HarshAcceleration, SharpCorner, C
 
 enum class DataSource { Live, Replay }
 
+/** Comes from the device data, never from the user. */
+enum class VehicleState {
+    /** Trip in progress, car moving. */
+    Driving,
+
+    /** Trip in progress, car standing (traffic light, jam); the trip is not ended yet. */
+    Stopped,
+
+    /** No trip in progress: ignition off, or stationary long enough. */
+    Parked,
+}
+
 /** Version 1 supports petrol and diesel; hybrid users choose petrol, EVs are out of scope. */
 enum class FuelType { Petrol, Diesel }
 
