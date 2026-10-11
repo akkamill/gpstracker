@@ -6,19 +6,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gpstracker.ui.crash.CrashAlertOverlay
-import com.example.gpstracker.ui.model.CrashAlertUiState
+import com.example.gpstracker.ui.crash.CrashAlertViewModel
 import com.example.gpstracker.ui.navigation.DriveBottomBar
 import com.example.gpstracker.ui.navigation.DriveMetricsNavHost
 import com.example.gpstracker.ui.navigation.TripDetailDestination
+import com.example.gpstracker.ui.navigation.navigateToTab
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 
 /** Root composable: theme, scaffold, bottom bar, navigation graph and the crash overlay. */
@@ -26,7 +25,8 @@ import com.example.gpstracker.ui.theme.DriveMetricsTheme
 fun DriveMetricsApp() {
     DriveMetricsTheme {
         val navController = rememberNavController()
-        var crash by remember { mutableStateOf(CrashAlertUiState()) }
+        val crashViewModel: CrashAlertViewModel = viewModel()
+        val crash by crashViewModel.state.collectAsStateWithLifecycle()
         val backStackEntry by navController.currentBackStackEntryAsState()
         val destination = backStackEntry?.destination
         val showBottomBar = destination?.hasRoute(TripDetailDestination::class) != true
@@ -38,27 +38,22 @@ fun DriveMetricsApp() {
                     if (showBottomBar) {
                         DriveBottomBar(
                             current = destination,
-                            onTabSelected = { tab ->
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            onTabSelected = navController::navigateToTab,
                         )
                     }
                 },
             ) { innerPadding ->
                 DriveMetricsNavHost(
                     navController = navController,
-                    onTriggerTestCrash = { crash = CrashAlertUiState(visible = true, secondsLeft = 10) },
+                    onTriggerTestCrash = crashViewModel::trigger,
                     modifier = Modifier.padding(innerPadding),
                 )
             }
             CrashAlertOverlay(
                 state = crash,
-                onImOk = { crash = CrashAlertUiState() },
-                onSendNow = { crash = crash.copy(sent = true) },
+                onImOk = crashViewModel::onImOk,
+                onSendNow = crashViewModel::onSendNow,
+                contactName = crashViewModel.contactName,
             )
         }
     }
