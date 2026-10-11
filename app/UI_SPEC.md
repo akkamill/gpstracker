@@ -4,6 +4,8 @@ Implementation spec for Claude Code. Project: `gpstracker`, package `com.example
 
 v2 adds: sign in / sign up with vehicle setup, fuel and money estimates, and an Insights tab comparing the driver with a benchmark driver.
 
+v2.1: **no manual trips.** There is no "Start trip" / "End trip" button anywhere. The app always shows live data from the car, and trips start and end automatically from the device data (ignition and movement, section 13.5). The user never opens or closes a trip.
+
 ## 0. Goal of this phase
 
 Build the complete, polished UI **with fake data only**, so it can be shown to the teacher. No networking, no database, no real GPS, no real authentication yet.
@@ -110,7 +112,7 @@ MainActivity
 - Bottom bar hidden on `TripDetail`, `Settings` and all auth screens.
 - Re-selecting the current tab does nothing; switching tabs keeps each tab's state (`saveState/restoreState`).
 - Edge-to-edge (`enableEdgeToEdge()`), insets handled by `Scaffold`; auth forms use `imePadding()` so the keyboard never hides the primary button.
-- Keep screen on while a trip is active (`FLAG_KEEP_SCREEN_ON` via a `KeepScreenOn` composable effect).
+- Keep screen on while the car is driving (`vehicleState != Parked`, via a `KeepScreenOn` composable effect using `FLAG_KEEP_SCREEN_ON`).
 - Support portrait and landscape; dashboard has a dedicated landscape layout.
 
 ---
@@ -140,10 +142,20 @@ data class DrivingEventUi(
     val position: GeoPointUi,
 )
 
+/** Comes from the device data, never from the user. */
+enum class VehicleState {
+    Driving,   // trip in progress, car moving
+    Stopped,   // trip in progress, car standing (traffic light, jam) – trip NOT ended yet
+    Parked,    // no trip in progress (ignition off / stationary long enough)
+}
+
 data class DriveUiState(
     val connection: ConnectionStatus = ConnectionStatus.Connecting,
     val gps: GpsStatus = GpsStatus.Good,
-    val isTripActive: Boolean = false,
+    val vehicleState: VehicleState = VehicleState.Parked,
+    val tripStartedLabel: String? = null,     // "Trip started 14:05", null when Parked
+    val lastTrip: TripSummaryUi? = null,      // shown on the dashboard while Parked
+    val tripJustSaved: TripSummaryUi? = null, // drives the "Trip saved" banner once
     val speedKmh: Int = 0,
     val speedLimitKmh: Int? = null,       // null = unknown limit
     val score: Int = 100,
@@ -157,6 +169,7 @@ data class DriveUiState(
 ) {
     val overLimitBy: Int get() = speedLimitKmh?.let { (speedKmh - it).coerceAtLeast(0) } ?: 0
     val isOverLimit: Boolean get() = overLimitBy > 5   // matches the +5 tolerance
+    val isTripInProgress: Boolean get() = vehicleState != VehicleState.Parked
 }
 
 /** Fuel and money estimate for one trip or one period. All values are estimates. */
@@ -190,6 +203,7 @@ data class TripDetailUi(
 )
 
 data class TripsUiState(
+    val tripInProgressLabel: String?,        // "Driving now, started 14:05"; null when parked
     val weekAverageScore: Int?,              // null when no trips
     val weekScores: List<Int>,               // last 7 trips, oldest first, for sparkline
     val sections: List<Pair<String, List<TripSummaryUi>>>,  // grouped by date label
@@ -258,6 +272,7 @@ data class SettingsUiState(
     val dataSource: DataSource = DataSource.Replay,   // enum { Live, Replay }
     val serverUrl: String = "ws://10.0.2.2:8080/telemetry",
     val speedTolerance: Int = 5,          // km/h, options 0, 5, 10
+    val tripEndAfterMinutes: Int = 5,     // options 2, 5, 10
     val crashDetectionEnabled: Boolean = true,
     val emergencyContactName: String = "",
     val vehicle: VehicleProfileUi = VehicleProfileUi(),
@@ -351,11 +366,22 @@ Keep the composable signature stable – a later step swaps the implementation t
 ### 4.10 `EmptyState(icon, title, message, actionLabel?, onAction?)`
 Centered column, icon 48 dp `Concrete`, title `titleMedium`, message `bodyMedium` `Concrete`, optional `OutlinedButton`.
 
-### 4.11 `TripButton(isTripActive, enabled, onStart, onStop)`
-Full-width, 64 dp, medium shape.
-- Inactive: `FilledButton`, `NightBlue`, icon `PlayArrow`, "Start trip".
-- Active: `OutlinedButton` with `SignRed` border and text, icon `Stop`, "End trip". Ending requires a **long press** (hold 1 s, show progress fill in the button) to avoid accidental taps while driving; a short tap shows the hint text "Hold to end trip" below the button for 2 s.
-- Disabled while `connection` is `Offline` or `Connecting` (with the hint "Waiting for connection").
+### 4.11 Trip status (no buttons) – `TripStatusBar` and `TripSavedBanner`
+There is **no start/end trip control** anywhere in the app. Trips are detected from the car's data.
+
+**`TripStatusBar(vehicleState: VehicleState, tripStartedLabel: String?)`** – one quiet line, height 40 dp, icon + text, no background:
+
+| VehicleState | Icon | Color | Text |
+|---|---|---|---|
+| Driving | `DirectionsCar` | NightBlue | "Driving. Trip started 14:05" |
+| Stopped | `PauseCircle` | Concrete | "Stopped. Trip continues when you drive on" |
+| Parked | `LocalParking` | Concrete | "Parked. A new trip starts when the car moves" |
+
+Not clickable. contentDescription = the text.
+
+**`TripSavedBanner(trip: TripSummaryUi?, onView)`** – appears when a trip ends automatically (`tripJustSaved` changes). Same container as `EventBanner`, slides in from the bottom above the bottom bar, stays 6 s: `CheckCircle` icon (GoGreen), "Trip saved", "18.2 km, score 91" + `TextButton` "View" → TripDetail. `liveRegion = Polite`.
+
+**`LastTripCard(trip: TripSummaryUi, onClick)`** – shown on the dashboard while Parked: `Kerb` card, ScoreBadge Small, "Last trip" (`labelMedium`, Concrete), `fromTo` (`titleMedium`), "Today 14:05 – 14:41, 18.2 km" (`bodyMedium`), chevron. Whole card opens TripDetail.
 
 ### 4.12 Charts (`ui/components/charts/`) – custom `Canvas`, no chart library
 
@@ -452,9 +478,11 @@ Shown right after sign up; also opened from Settings ("Vehicle and fuel").
 
 ## 6. Screen: Drive (dashboard) – start of MainGraph
 
-`DriveScreen(state: DriveUiState, onStartTrip, onStopTrip, onOpenSettings)`
+`DriveScreen(state: DriveUiState, onOpenTrip(id), onOpenSettings)`
 
-### Portrait layout
+The dashboard is **read-only**: it only shows what the car reports. Nothing on it starts or stops anything.
+
+### Portrait layout – driving
 
 ```
 ┌──────────────────────────────────┐
@@ -475,27 +503,51 @@ Shown right after sign up; also opened from Settings ("Vehicle and fuel").
 │  12.4 km  │  23:41  │    3       │  StatTile ×3: Distance / Time / Events
 │  Distance │  Time   │  Events    │
 │                                  │
-│ [ ▶  Start trip               ]  │  TripButton, 16dp from bottom bar
+│ 🚗 Driving. Trip started 14:05   │  TripStatusBar, 16dp above bottom bar
 └──────────────────────────────────┘
 ```
 
-- EventBanner overlays the top area (above chips) when present.
-- When no trip is active: gauge still shows live speed; score area shows "Start a trip to get a score" in `Concrete` instead of the badge; stats show "—".
+### Portrait layout – parked
+
+```
+┌──────────────────────────────────┐
+│ [● Live]  [⌖ GPS]                │  no speed-limit sign while parked
+│        ╭───────────────╮         │
+│     │         0           │      │  SpeedGauge at 0 (dimmed: arc track only)
+│        ╰───────────────╯         │
+│ ┌──────────────────────────────┐ │
+│ │ (91) Last trip             › │ │  LastTripCard → TripDetail
+│ │      Žaliakalnis → Akropolis │ │
+│ │      Today 14:05 – 14:41,    │ │
+│ │      18.2 km                 │ │
+│ └──────────────────────────────┘ │
+│ Ⓟ Parked. A new trip starts when │  TripStatusBar
+│   the car moves                  │
+└──────────────────────────────────┘
+```
+
+- **Driving / Stopped:** score, stats and events are for the trip in progress. Stopped looks the same as Driving except the TripStatusBar text and the speed reads 0.
+- **Parked:** no score badge and no stats; the LastTripCard replaces them. If there has never been a trip, show instead: `DirectionsCar` icon + "Waiting for your first drive" + "Trips are recorded automatically when the car moves." (`bodyMedium`, Concrete).
+- EventBanner overlays the top area (above chips) when present. TripSavedBanner appears at the bottom when a trip has just ended.
+- Offline: gauge shows "—" instead of a number, StatusBanner "Not connected to the car. Check the server address in Settings." with action "Settings". Trip state is shown as last known.
 - The dashboard deliberately shows **no fuel or money numbers** – it stays glanceable while driving.
 
 ### Landscape layout
-Two columns: left 55% = gauge (centered, height-bound) with limit sign at its top-right; right 45% = chips, banner, score, stats (2×2 grid incl. avg speed), TripButton at bottom.
+Two columns: left 55% = gauge (centered, height-bound) with limit sign at its top-right; right 45% = chips, banner, score + stats (2×2 grid incl. avg speed) or LastTripCard when parked, TripStatusBar at the bottom.
 
 ### States to preview
-1. Idle, connected (Replay), no trip
-2. Active trip, normal speed (48 in 50)
-3. Active trip, over limit (72 in 50) – red arc, "+22 over limit"
-4. Active trip with EventBanner visible (Harsh braking −3)
-5. Reconnecting banner during trip
-6. GPS lost banner during trip
-7. Offline, no trip (button disabled, banner with Settings action)
-8. Unknown speed limit
-9. Landscape, active trip
+1. Parked, connected (Replay), with last trip
+2. Parked, first use (no trips yet)
+3. Driving, normal speed (48 in 50)
+4. Driving, over limit (72 in 50) – red arc, "+22 over limit"
+5. Driving with EventBanner visible (Harsh braking −3)
+6. Stopped at a light (trip in progress, speed 0)
+7. Trip just ended – Parked with TripSavedBanner
+8. Reconnecting banner while driving
+9. GPS lost banner while driving
+10. Offline (banner with Settings action)
+11. Unknown speed limit
+12. Landscape, driving
 
 ---
 
@@ -517,7 +569,7 @@ Two columns: left 55% = gauge (centered, height-bound) with limit sign at its to
 └──────────────────────────────────┘
 ```
 - Overlay speed number turns `SignRed` + shows "+12" text when over limit.
-- No trip / empty route: map shows grid + current position only and the overlay says "Start a trip on the Drive tab to record your route."
+- Parked: map shows the **last trip's** route (dimmed, 50% alpha) and the car's parked position; the overlay says "Parked. Your route appears here when the car moves." No trips ever: grid + current position only.
 - Previews: active trip with 3 events; empty.
 
 ---
@@ -544,7 +596,8 @@ Two columns: left 55% = gauge (centered, height-bound) with limit sign at its to
 ```
 - `LazyColumn` with `stickyHeader` per section. Row min height 72 dp, ripple, whole row clickable, contentDescription summarising the trip.
 - Guest mode: demo banner (section 5.1) above the header card.
-- Empty state: icon `Route`, "No trips yet", "Start a trip on the Drive tab. Finished trips appear here.", button "Go to Drive".
+- A trip in progress appears as the first row with a "Driving now" label (NightBlue dot + text) instead of the score badge; tapping it opens the Drive tab. It turns into a normal row when the trip ends.
+- Empty state: icon `Route`, "No trips yet", "Trips are recorded automatically when your car is driving.", no button.
 - Previews: populated (≥ 6 trips across 3 days, mixed bands), empty, guest.
 
 ---
@@ -607,7 +660,7 @@ Previews: trip with events, perfect trip (100, no events, wasted 0.00 L), fuel p
 
 - The ⓘ next to "Benchmark driver" opens a bottom sheet: "The benchmark is a simulated typical driver built from fixed assumptions in this app. It is not real data from other drivers. In a future version it could be the anonymous average of all app users." (`onAboutBenchmark`).
 - Period switch animates chart values (no full-screen reload).
-- `hasEnoughData == false` → `EmptyState`: icon `Insights`, "Not enough trips yet", "Finish at least 3 trips this week to compare your driving.", button "Go to Drive".
+- `hasEnoughData == false` → `EmptyState`: icon `Insights`, "Not enough trips yet", "After 3 trips this week you can compare your driving. Trips are recorded automatically.", no button.
 - Guest mode: demo banner at the top.
 - Previews: week (better than benchmark), month (worse on braking), not enough data, fuel price not set, guest.
 
@@ -629,6 +682,9 @@ Top bar: back arrow, title "Settings". Grouped list (section titles `labelMedium
   - Server address `OutlinedTextField` (enabled only for Live), supporting text "WebSocket address of the relay server", keyboard type Uri, validation error "Address must start with ws:// or wss://".
 - **Scoring**
   - "Speeding tolerance": segmented 0 / +5 / +10 km/h, supporting text "Speed above the limit that is not penalised."
+- **Trips**
+  - "End a trip after the car stands still for": segmented 2 / 5 / 10 min (default 5), supporting text "Trips also end when the engine is turned off. Short stops, like traffic lights, don't split a trip."
+  - Read-only note: "Trips start automatically when the car moves."
 - **Safety**
   - Switch "Crash detection" + supporting text "Shows a 10-second alert after a sudden stop."
   - Text field "Emergency contact name" (enabled only when crash detection is on).
@@ -707,15 +763,44 @@ Interface `AuthRepository { val session: StateFlow<SessionState>; suspend fun si
 - **Never log passwords**; store only a hash even in the fake (`MessageDigest` SHA-256 is fine for the fake; real auth replaces this entirely).
 - Real implementation later: Firebase Authentication or the project's own backend – decided after the teacher confirms scope.
 
-### 13.5 `FakeDriveSimulator`
-A plain class exposing `val state: StateFlow<DriveUiState>`, with `start(scope)`, `startTrip()`, `stopTrip()`. Every 500 ms it:
-- Moves along the fake route; speed follows a smooth curve 0 → 45 → 52 → 30 → 68 (speeding segment, limit 50) → 20 → 0, looping.
-- Changes speed limit per segment (50 / 70 / 30).
-- When a trip is active: accumulates distance/time, emits fake events at scripted points (speeding while > 55 for 3 s, one harsh braking, one sharp corner), sets `latestEvent`, lowers score with the formula from the report (`100 − 10 × penalties / max(km, 1)`, clamped 0..100).
-- Every ~90 s: 6 s of `Reconnecting`; once per loop: 6 s of `GpsStatus.Lost`.
-- `stopTrip()` converts the run into a `TripSummaryUi` + `TripDetailUi` (fuel via `FuelEstimator`) and prepends it to an in-memory trips list (exposed as `StateFlow<TripsUiState>`), so Trips and Insights update during a demo.
+### 13.5 `TripDetector` (pure Kotlin, unit tested, in `data/estimate/` for now; moves to `:domain` later)
+A small state machine that turns the stream of samples into trips. **This replaces any manual start/stop.** Input per sample: timestamp, speed, `ignitionOn: Boolean?` (null = device doesn't report it), GPS valid.
 
-### 13.6 Wiring (temporary)
+States: `Parked → Driving ⇄ Stopped → Parked`.
+
+| From | Condition | To | Effect |
+|---|---|---|---|
+| Parked | ignition turns on **and** speed > 5 km/h, or (ignition unknown) speed > 5 km/h for ≥ 10 s | Driving | new trip starts at the first moving sample |
+| Driving | speed < 3 km/h for ≥ 5 s | Stopped | trip continues |
+| Stopped | speed > 5 km/h | Driving | trip continues |
+| Driving/Stopped | ignition turns off | Parked | trip ends (after a 30 s grace period in case of a quick restart) |
+| Stopped | standing still for `tripEndAfterMinutes` | Parked | trip ends at the moment the car stopped |
+| Driving/Stopped | no data for 10 min | Parked | trip ends at the last received sample, marked "ended without signal" |
+
+- Trips shorter than 0.3 km **or** 60 s are discarded (car moved in a parking lot).
+- If the app reconnects after a gap of less than 10 min and the car is still moving, it is the **same trip**.
+- Unit tests (`TripDetectorTest`): normal trip with ignition, trip without ignition data, traffic-light stop doesn't split the trip, long stop ends it, ignition off/on within 30 s keeps one trip, too-short trip discarded, signal gap < 10 min continues, gap ≥ 10 min ends.
+- Time comes from an injected clock so tests run instantly.
+
+### 13.6 `FakeDriveSimulator`
+A plain class exposing `val state: StateFlow<DriveUiState>` and `val trips: StateFlow<TripsUiState>`, with only `start(scope)`. **No `startTrip()` / `stopTrip()`** – it simulates a car, and `TripDetector` decides when trips begin and end. Every 500 ms it emits a sample with speed, limit, position and ignition:
+- A loop of a whole "day" in **demo time** (compressed so a full cycle takes ~3 minutes; the compression factor lives in one constant):
+  1. Parked, ignition off (~15 s).
+  2. Ignition on, drives the Kaunas route; speed follows a smooth curve 0 → 45 → 52 → 30 → 68 (speeding segment, limit 50) → 20 → 0, with one 20 s traffic-light stop in the middle (must **not** split the trip).
+  3. Arrives, ignition off → trip ends → `tripJustSaved` set → back to step 1 and next loop drives the route in reverse.
+- Changes speed limit per segment (50 / 70 / 30).
+- During a trip: accumulates distance/time, emits fake events at scripted points (speeding while > 55 for 3 s, one harsh braking, one sharp corner), sets `latestEvent`, lowers score with the formula from the report (`100 − 10 × penalties / max(km, 1)`, clamped 0..100).
+- Once per loop while driving: 6 s of `Reconnecting`; once per loop: 6 s of `GpsStatus.Lost`.
+- When a trip ends it builds a `TripSummaryUi` + `TripDetailUi` (fuel via `FuelEstimator`) and prepends it to the in-memory trips list, so Trips and Insights update during a demo.
+- Debug-only shortcut for presentations: in Settings → About, a `TextButton` "Skip to next drive" (visible only in debug builds) jumps the simulator to step 2. It controls the **simulated car**, not the trip, so the no-manual-trips rule still holds.
+
+### 13.7 How this works when the app is closed (decision for later, note it in the report)
+The UI phase only shows live data while the app is open. For the real version, choose one:
+- **A. Server keeps the data (recommended):** the relay server stores telemetry, and the app catches up on missed samples when it opens or reconnects, then runs `TripDetector` over them. This matches how real telematics products work and keeps the phone's battery free.
+- **B. Foreground service on the phone:** keeps the connection open with a permanent notification. Works without a server database but Android restricts it and drains battery.
+Ask the teacher whether a server-side database is acceptable before picking.
+
+### 13.8 Wiring (temporary)
 - Thin ViewModels (`SessionViewModel`, `SignInViewModel`, `SignUpViewModel`, `VehicleSetupViewModel`, `DriveViewModel`, `TripsViewModel`, `TripDetailViewModel`, `InsightsViewModel`, `SettingsViewModel`, `CrashAlertViewModel`) expose `StateFlow`s and forward callbacks. One app-level instance of each fake created in an `AppContainer` object (manual DI for now; Koin comes later).
 - Settings and vehicle profile kept in memory for now (DataStore later).
 - `CrashAlertViewModel` runs the countdown with a coroutine; "Test crash alert" in Settings triggers it.
@@ -732,14 +817,15 @@ app/src/main/java/com/example/gpstracker/
 ├── AppContainer.kt
 ├── data/
 │   ├── fake/           FakeData.kt, FakeDriveSimulator.kt, FakeAuthRepository.kt, PreviewStates.kt
-│   └── estimate/       FuelEstimator.kt, FuelModelConfig.kt, BenchmarkProvider.kt
+│   └── estimate/       FuelEstimator.kt, FuelModelConfig.kt, BenchmarkProvider.kt, TripDetector.kt
 └── ui/
     ├── theme/          Color.kt, Type.kt, Shape.kt, Theme.kt
     ├── model/          UiModels.kt, AuthModels.kt, InsightsModels.kt
     ├── navigation/     Routes.kt, DriveMetricsNavHost.kt, AuthGraph.kt, MainGraph.kt, BottomBar.kt
     ├── components/     SpeedGauge.kt, SpeedLimitSign.kt, ScoreBadge.kt, StatusChips.kt,
     │                   StatusBanner.kt, EventBanner.kt, StatTile.kt, EventRow.kt,
-    │                   RouteMap.kt, EmptyState.kt, TripButton.kt, FuelCard.kt,
+    │                   RouteMap.kt, EmptyState.kt, TripStatusBar.kt, TripSavedBanner.kt,
+    │                   LastTripCard.kt, FuelCard.kt,
     │                   AccountAvatar.kt, GuestBanner.kt, InfoBottomSheet.kt,
     │                   StatusVisuals.kt, KeepScreenOn.kt
     ├── components/charts/  TrendLineChart.kt, ComparisonBarChart.kt, Sparkline.kt, ChartLegend.kt
@@ -758,7 +844,7 @@ app/src/main/java/com/example/gpstracker/
     └── crash/          CrashAlertOverlay.kt, CrashAlertViewModel.kt
 
 app/src/test/java/com/example/gpstracker/
-    AuthValidatorTest.kt, FuelEstimatorTest.kt, BenchmarkComparisonTest.kt
+    AuthValidatorTest.kt, FuelEstimatorTest.kt, BenchmarkComparisonTest.kt, TripDetectorTest.kt
 ```
 
 Dependencies to add (via `libs.versions.toml`, latest stable versions): `navigation-compose`, `material-icons-extended`, `lifecycle-viewmodel-compose`, `lifecycle-runtime-compose`, `kotlinx-serialization-json` + `kotlin.plugin.serialization`. Test: `junit`, `ui-test-junit4`, `ui-test-manifest`. **No map SDK, no chart library and no auth SDK in this phase.**
@@ -773,22 +859,23 @@ Dependencies to add (via `libs.versions.toml`, latest stable versions): `navigat
 4. **Charts + FuelCard** (4.12, 4.13) with previews.
 5. **Navigation shell:** AuthGraph + MainGraph, session-based start, bottom bar (4 tabs), avatar → Settings, placeholder screens, TripDetail push.
 6. **Auth screens:** Welcome, Sign in, Sign up, Vehicle setup + `AuthValidator` with unit tests + `FakeAuthRepository`.
-7. **Drive screen** (portrait + landscape) with all 9 preview states.
+7. **Drive screen** (portrait driving + parked, landscape) with all 12 preview states. No start/end trip button.
 8. **Map screen** with `CanvasRouteMap`.
 9. **Trips + Trip detail** screens (with fuel card).
 10. **`FuelEstimator` + `BenchmarkProvider`** with unit tests, then the **Insights** screen.
 11. **Settings screen** + **Crash alert overlay**.
-12. **FakeDriveSimulator + ViewModels** – app runs as a live demo end to end.
-13. **Polish & checks:** TalkBack labels (including chart descriptions), font scale 1.3 without clipping, landscape, 48 dp targets, keyboard never covers auth buttons, 4–5 Compose UI tests: dashboard shows "+N over limit" when over limit; sign-in shows error for wrong password; trips empty state shows button; Insights shows "Not enough trips yet" with < 3 trips; crash overlay "I'm OK" hides it.
+12. **`TripDetector` with unit tests, then FakeDriveSimulator + ViewModels** – app runs as a live demo end to end, trips start and end on their own.
+13. **Polish & checks:** TalkBack labels (including chart descriptions), font scale 1.3 without clipping, landscape, 48 dp targets, keyboard never covers auth buttons, 4–5 Compose UI tests: dashboard shows "+N over limit" when over limit; parked dashboard shows the last trip card; sign-in shows error for wrong password; Insights shows "Not enough trips yet" with < 3 trips; crash overlay "I'm OK" hides it.
 
 ## 16. Done when
 
 - App builds with `./gradlew assembleDebug` and runs on emulator **and** a physical phone.
 - Welcome → Sign up → Vehicle setup → Drive works; Sign out returns to Welcome; "Try the demo" works without an account; back stack never returns to auth screens after signing in.
 - All 4 tabs + Trip detail + Settings + crash overlay reachable; back navigation correct; tab state kept.
-- In demo mode, within 2 minutes you can see: speed changing, a speeding state, an event banner, a reconnecting banner, a GPS-lost banner, and a finished trip appearing in Trips and changing Insights.
+- In demo mode, within one simulator cycle (~3 minutes) you can see, **without touching anything**: the car parked, a trip starting by itself, speed changing, a speeding state, an event banner, a traffic-light stop that does not split the trip, a reconnecting banner, a GPS-lost banner, the trip ending by itself with the "Trip saved" banner, and the trip appearing in Trips and changing Insights.
+- No start/end trip control exists anywhere in the UI (search the code for "Start trip" / "End trip": no results).
 - Fuel and benchmark values are always labelled as estimates / simulated.
 - Every screen/state listed above has a preview that renders.
 - No hard-coded colors or strings in screen files.
 - No ViewModel or fake data referenced inside any `…Screen` composable.
-- `AuthValidatorTest`, `FuelEstimatorTest` and `BenchmarkComparisonTest` pass.
+- `AuthValidatorTest`, `FuelEstimatorTest`, `BenchmarkComparisonTest` and `TripDetectorTest` pass.
