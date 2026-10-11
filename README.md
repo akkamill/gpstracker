@@ -50,8 +50,7 @@ gpstracker/
 │           ├── components/ Reusable pieces: gauge, charts, cards, banners
 │           ├── navigation/ Routes and bottom bar
 │           └── auth, drive, map, trips, tripdetail, insights, settings, crash
-├── docs/                   Screenshots and font license
-└── app/UI_SPEC.md          Full UI specification
+└── docs/                   Screenshots and font license
 ```
 
 Each screen has a stateless `Screen` composable, a `Route` that connects it to its
