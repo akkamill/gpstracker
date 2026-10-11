@@ -85,4 +85,10 @@
         <item quantity="one">%d event</item>
         <item quantity="other">%d events</item>
     </plurals>
+
+    <!-- Map screen -->
+    <string name="map_recenter_cd">Recenter map</string>
+    <string name="map_empty_hint">Start a trip on the Drive tab to record your route.</string>
+    <string name="map_over_limit">+%1$d</string>
+    <string name="map_summary">%1$s km · %2$s · %3$s</string>
 </resources>
