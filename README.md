@@ -37,13 +37,18 @@ GPS or server. Fuel, money and benchmark values are estimates and are labelled a
 
 ```
 gpstracker/
-├── domain/                 Pure Kotlin: telemetry models and driving rules
+├── model/                  Plain data classes shared by all modules (JSON-ready)
+├── telematics/             Vehicle tracker data format (AVL records) and its conversion
+├── domain/                 Driving rules: events, score, trip detection
+├── simulator/              A simulated car with a tracker, driving routes in Kaunas
 ├── app/                    The Android app
 │   └── src/main/java/com/example/gpstracker/
 │       ├── data/
-│       │   ├── estimate/   Trip detection, fuel estimate, benchmark, insights
+│       │   ├── telematics/ Simulated data source and road map lookup
+│       │   ├── drive/      Runs the driving rules and prepares data for the screens
+│       │   ├── estimate/   Fuel estimate, benchmark, insights
 │       │   ├── auth/       Account interface
-│       │   └── fake/       Car simulator, fake accounts, sample data
+│       │   └── fake/       Fake accounts, sample history, preview data
 │       └── ui/
 │           ├── theme/      Colors, fonts, shapes
 │           ├── model/      Models the screens display
@@ -53,6 +58,10 @@ gpstracker/
 └── docs/                   Screenshots and font license
 ```
 
+Dependencies point one way: `app` uses `domain`, `telematics` and `simulator`;
+`domain` and `telematics` use `model`; `model` uses nothing of ours. The driving rules
+therefore never depend on Android, a device format or a screen.
+
 Each screen has a stateless `Screen` composable, a `Route` that connects it to its
 `ViewModel`, and a `ViewModel` that exposes one immutable state.
 
@@ -61,7 +70,7 @@ Each screen has a stateless `Screen` composable, a `Route` that connects it to i
 Unit tests (no device needed):
 
 ```bash
-./gradlew :domain:test :app:testDebugUnitTest
+./gradlew :model:test :telematics:test :domain:test :simulator:test :app:testDebugUnitTest
 ```
 
 UI tests (an emulator or a phone must be connected):
