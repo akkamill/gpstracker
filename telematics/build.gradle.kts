@@ -20,5 +20,6 @@ kotlin {
 
 dependencies {
     api(project(":model"))
+    implementation(project(":tracing"))
     testImplementation(libs.junit)
 }

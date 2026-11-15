@@ -10,6 +10,8 @@ import com.example.gpstracker.model.map.RoadInfo
 import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState
+import com.example.gpstracker.tracing.Tracing
+import java.util.Locale
 import kotlin.math.max
 
 /** The trip being driven right now. */
@@ -61,7 +63,9 @@ class DriveTracker(
     private val map: MapLookup = MapLookup.NONE,
     tripConfig: TripDetectorConfig = TripDetectorConfig(),
 ) {
+    private val tracer = Tracing.tracer("domain")
     private val tripDetector = TripDetector(tripConfig)
+    private var hadPosition = true
     private val eventDetector = EventDetector(rules)
     private var current: TripBuilder? = null
     private var latest: TelemetryPoint? = null
@@ -81,6 +85,10 @@ class DriveTracker(
         latest = point
         if (point.hasPosition) road = map.roadAt(point.latitude, point.longitude)
         val finished = handle(tripDetector.onSample(point.toTripSample()), point)
+        if (current != null && point.hasPosition != hadPosition) {
+            if (point.hasPosition) tracer.info("GPS fix back, scoring again") else tracer.warn("GPS fix lost, score paused")
+        }
+        hadPosition = point.hasPosition
         val newEvents = current?.add(point, previous).orEmpty()
         return DriveUpdate(snapshot(), newEvents, finished)
     }
@@ -105,13 +113,26 @@ class DriveTracker(
             when (event) {
                 is TripEvent.Started -> {
                     eventDetector.reset()
+                    tracer.info("trip started", "from" to point?.takeIf { it.hasPosition }?.let { placeOf(it.position) })
                     current = TripBuilder(event.startMs, point?.takeIf { it.hasPosition }?.let { placeOf(it.position) })
                 }
                 is TripEvent.Ended -> {
-                    finished = current?.finish(event)
+                    finished = current?.finish(event)?.also { trip ->
+                        tracer.info(
+                            "trip ended",
+                            "to" to trip.endPlace,
+                            "km" to "%.1f".format(Locale.US, trip.distanceKm),
+                            "score" to trip.score,
+                            "events" to trip.events.size,
+                            "withoutSignal" to trip.endedWithoutSignal,
+                        )
+                    }
                     current = null
                 }
-                is TripEvent.Discarded -> current = null
+                is TripEvent.Discarded -> {
+                    tracer.debug("short movement ignored, not a trip")
+                    current = null
+                }
             }
         }
         return finished

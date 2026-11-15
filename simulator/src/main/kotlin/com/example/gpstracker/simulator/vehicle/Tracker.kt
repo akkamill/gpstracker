@@ -6,6 +6,7 @@ import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.telematics.GpsElement
 import com.example.gpstracker.simulator.road.Geo
 import com.example.gpstracker.simulator.road.GeoPoint
+import com.example.gpstracker.tracing.Tracing
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -49,7 +50,10 @@ class Tracker(
     private val parkedPeriodS: Int = 10,
     startOdometerM: Long = 84_250_000,
 ) {
+    private val tracer = Tracing.tracer("simulator")
     private val buffer = ArrayDeque<AvlRecord>()
+    private var lastOnline = true
+    private var lastGnss = true
     private var lastFix: GeoPoint? = null
     private var lastIgnition: Boolean? = null
     private var secondsSinceRecord = Int.MAX_VALUE / 2
@@ -64,6 +68,7 @@ class Tracker(
      */
     fun sample(state: CarState, travelledM: Double): List<AvlRecord> {
         odometerM += travelledM
+        logChanges(state)
         val ignitionChanged = lastIgnition != null && lastIgnition != state.ignitionOn
         lastIgnition = state.ignitionOn
         secondsSinceRecord++
@@ -77,6 +82,21 @@ class Tracker(
         val out = buffer.toList()
         buffer.clear()
         return out
+    }
+
+    private fun logChanges(state: CarState) {
+        if (state.online != lastOnline) {
+            if (state.online) {
+                tracer.info("mobile coverage back, sending stored records", "records" to buffer.size + 1)
+            } else {
+                tracer.warn("no mobile coverage, storing records")
+            }
+            lastOnline = state.online
+        }
+        if (state.gnssAvailable != lastGnss) {
+            if (state.gnssAvailable) tracer.info("satellite fix back") else tracer.warn("satellite fix lost")
+            lastGnss = state.gnssAvailable
+        }
     }
 
     private fun record(state: CarState, eventIo: Int): AvlRecord {
