@@ -3,6 +3,9 @@ package com.example.gpstracker.model
 import com.example.gpstracker.model.driving.DrivingEvent
 import com.example.gpstracker.model.driving.DrivingEventType
 import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.model.reports.ReportSource
+import com.example.gpstracker.model.reports.ReportType
+import com.example.gpstracker.model.reports.RoadReport
 import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.model.trip.Trip
 import kotlinx.serialization.SerializationException
@@ -61,6 +64,15 @@ class JsonTest {
             TelemetryPoint.serializer(),
             """{"timestampMs":5,"latitude":95.0,"longitude":23.9,"speedMps":10.0}""",
         )
+    }
+
+    @Test
+    fun `a road report survives a round trip through JSON`() {
+        val report =
+            RoadReport("r1", ReportType.Police, LatLon(54.9, 23.9), 1_000, 1_801_000, ReportSource.OtherDriver, 245.0, "Savanorių pr.")
+        val text = json.encodeToString(RoadReport.serializer(), report)
+        assertTrue(text.contains("\"type\":\"Police\""))
+        assertEquals(report, json.decodeFromString(RoadReport.serializer(), text))
     }
 
     @Test(expected = SerializationException::class)

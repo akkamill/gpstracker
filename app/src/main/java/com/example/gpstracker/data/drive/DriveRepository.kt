@@ -3,6 +3,7 @@ package com.example.gpstracker.data.drive
 import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.toNumbers
 import com.example.gpstracker.data.fake.FakeData
+import com.example.gpstracker.data.reports.RoadReportService
 import com.example.gpstracker.domain.driving.Scoring
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveSnapshot
@@ -61,6 +62,7 @@ class TelemetryDriveRepository(
     private val connectedStatus: ConnectionStatus = ConnectionStatus.Replay,
     private val mapper: DriveUiMapper = DriveUiMapper(),
     seedHistory: Boolean = true,
+    private val reports: RoadReportService? = null,
 ) : DriveRepository {
     private val lock = Any()
     private val tracer = Tracing.tracer("app")
@@ -125,6 +127,7 @@ class TelemetryDriveRepository(
             latestEventAtMs = clock()
         }
         update.finishedTrip?.let(::save)
+        reports?.onPoint(point, snapshot.road?.name, inTrip = snapshot.vehicleState != VehicleState.Parked)
         publish()
     }
 

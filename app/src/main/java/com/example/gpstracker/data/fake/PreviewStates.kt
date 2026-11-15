@@ -9,6 +9,9 @@ import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.GpsStatus
 import com.example.gpstracker.ui.model.InsightsPeriod
+import com.example.gpstracker.ui.model.ReportAheadUi
+import com.example.gpstracker.ui.model.ReportKind
+import com.example.gpstracker.ui.model.RoadReportUi
 import com.example.gpstracker.ui.model.ScoreBand
 import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.SignInUiState
@@ -153,4 +156,21 @@ object PreviewStates {
     val vehicleDefault = VehicleProfileUi()
     val vehicleInvalid = VehicleProfileUi(consumptionL100 = "40")
     val vehicleInvalidErrors = VehicleErrorsUi(consumption = "Enter a value between 2.0 and 25.0.")
+
+    /** Reports from other drivers along the sample route, plus one of mine. */
+    val reports = listOf(
+        RoadReportUi("r1", ReportKind.Police, FakeData.route[30], "Savanorių pr.", mine = false),
+        RoadReportUi("r2", ReportKind.Hazard, FakeData.route[55], "Jonavos g.", mine = false),
+        RoadReportUi("r3", ReportKind.TrafficJam, FakeData.route[70], "Jonavos g.", mine = true),
+    )
+
+    /** Driving towards a police check 400 m ahead. */
+    val driveReportAhead = driveDriving.copy(
+        canReport = true,
+        reports = reports,
+        reportAhead = ReportAheadUi("r1", ReportKind.Police, "400 m", "Savanorių pr."),
+    )
+
+    /** Just drove past a report: is it still there? */
+    val driveStillThere = driveDriving.copy(canReport = true, reports = reports, stillThere = reports.first())
 }

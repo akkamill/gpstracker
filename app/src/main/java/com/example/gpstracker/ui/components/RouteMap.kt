@@ -11,13 +11,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,6 +33,8 @@ import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.ui.model.DrivingEventUi
 import com.example.gpstracker.ui.model.GeoPointUi
+import com.example.gpstracker.ui.model.ReportKind
+import com.example.gpstracker.ui.model.RoadReportUi
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import com.example.gpstracker.ui.theme.KerbHigh
 import com.example.gpstracker.ui.theme.LineWhite
@@ -54,8 +62,9 @@ fun RouteMap(
     selectedEventId: String? = null,
     followCurrent: Boolean = false,
     dimmed: Boolean = false,
+    reports: List<RoadReportUi> = emptyList(),
 ) {
-    CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent, dimmed)
+    CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent, dimmed, reports)
 }
 
 @Composable
@@ -67,8 +76,11 @@ private fun CanvasRouteMap(
     selectedEventId: String?,
     followCurrent: Boolean,
     dimmed: Boolean,
+    reports: List<RoadReportUi>,
 ) {
     val description = stringResource(R.string.map_preview_label)
+    // Vector icons for report markers, prepared once; the Canvas draws them below.
+    val reportIcons = ReportKind.entries.associateWith { rememberVectorPainter(it.icon()) }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface)
@@ -77,7 +89,7 @@ private fun CanvasRouteMap(
         Canvas(Modifier.fillMaxSize()) {
             drawGrid()
             val projection = Projection.fit(
-                points = route + events.map { it.position } + listOfNotNull(currentPosition),
+                points = route + events.map { it.position } + reports.map { it.position } + listOfNotNull(currentPosition),
                 focus = if (followCurrent) currentPosition else null,
                 width = size.width,
                 height = size.height,
@@ -102,6 +114,9 @@ private fun CanvasRouteMap(
                 drawCircle(e.type.color(), radius, o)
                 drawCircle(Color.White, radius, o, style = Stroke(2.dp.toPx()))
             }
+            reports.forEach { r ->
+                drawReportMarker(projection.toOffset(r.position), r.kind.color(), reportIcons.getValue(r.kind))
+            }
             currentPosition?.let {
                 val o = projection.toOffset(it)
                 drawCircle(NightBlue, 13.dp.toPx(), o)
@@ -116,6 +131,23 @@ private fun CanvasRouteMap(
         )
     }
 }
+
+/** A rounded square in the report's color with its icon, so report types differ by shape too. */
+private fun DrawScope.drawReportMarker(at: Offset, color: Color, icon: Painter) {
+    val box = REPORT_MARKER_DP.dp.toPx()
+    val iconSize = REPORT_ICON_DP.dp.toPx()
+    val corner = CornerRadius(REPORT_CORNER_DP.dp.toPx())
+    val topLeft = Offset(at.x - box / 2, at.y - box / 2)
+    drawRoundRect(color, topLeft, Size(box, box), corner)
+    drawRoundRect(Color.White, topLeft, Size(box, box), corner, style = Stroke(2.dp.toPx()))
+    translate(at.x - iconSize / 2, at.y - iconSize / 2) {
+        with(icon) { draw(Size(iconSize, iconSize), colorFilter = ColorFilter.tint(Color.White)) }
+    }
+}
+
+private const val REPORT_MARKER_DP = 26
+private const val REPORT_ICON_DP = 16
+private const val REPORT_CORNER_DP = 6
 
 private fun DrawScope.drawGrid() {
     val step = 32.dp.toPx()

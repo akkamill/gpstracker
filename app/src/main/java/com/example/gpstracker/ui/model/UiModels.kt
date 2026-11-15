@@ -84,6 +84,14 @@ data class DriveUiState(
     val position: GeoPointUi? = null,
     /** Route of the most recent finished trip, drawn dimmed on the map while parked. */
     val lastTripRoute: List<GeoPointUi> = emptyList(),
+    /** Reports from drivers, shown on the map. */
+    val reports: List<RoadReportUi> = emptyList(),
+    /** The nearest report ahead; drives the warning banner. */
+    val reportAhead: ReportAheadUi? = null,
+    /** A report the car just passed: the driver is asked whether it is still there. */
+    val stillThere: RoadReportUi? = null,
+    /** False until the car's position is known; reporting needs a place. */
+    val canReport: Boolean = false,
 ) {
     val overLimitBy: Int get() = speedLimitKmh?.let { (speedKmh - it).coerceAtLeast(0) } ?: 0
     val isOverLimit: Boolean get() = overLimitBy > OVER_LIMIT_TOLERANCE_KMH
