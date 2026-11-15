@@ -1,6 +1,16 @@
-package com.example.gpstracker.data.estimate
+package com.example.gpstracker.domain.trip
 
-import com.example.gpstracker.ui.model.VehicleState
+/** What the car is doing, as far as trips are concerned. Comes from the device data, never from the user. */
+enum class VehicleState {
+    /** Trip in progress, car moving. */
+    Driving,
+
+    /** Trip in progress, car standing (traffic light, jam); the trip is not ended yet. */
+    Stopped,
+
+    /** No trip in progress: ignition off, or stationary long enough. */
+    Parked,
+}
 
 /**
  * One reading from the car.
@@ -54,7 +64,7 @@ sealed interface TripEvent {
  * ```
  *
  * Pure Kotlin with no clock of its own: time comes from the samples (and from
- * [onTick] for "no data" detection), so tests run instantly. It moves to `:domain` later.
+ * [onTick] for "no data" detection), so tests run instantly.
  */
 class TripDetector(private var config: TripDetectorConfig = TripDetectorConfig()) {
 

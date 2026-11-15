@@ -2,10 +2,10 @@ package com.example.gpstracker.data.fake
 
 import com.example.gpstracker.data.estimate.FuelEstimator
 import com.example.gpstracker.data.estimate.FuelInput
-import com.example.gpstracker.data.estimate.TripDetector
-import com.example.gpstracker.data.estimate.TripEvent
+import com.example.gpstracker.domain.trip.TripDetector
+import com.example.gpstracker.domain.trip.TripEvent
 import com.example.gpstracker.data.estimate.TripRecord
-import com.example.gpstracker.data.estimate.TripSample
+import com.example.gpstracker.domain.trip.TripSample
 import com.example.gpstracker.data.estimate.VehicleNumbers
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
@@ -254,7 +254,7 @@ class FakeDriveSimulator(
         _state.value = DriveUiState(
             connection = s.connection,
             gps = s.gps,
-            vehicleState = detector.state,
+            vehicleState = VehicleState.valueOf(detector.state.name),
             tripStartedLabel = startLabel?.let { "Trip started $it" },
             lastTrip = summaries.firstOrNull(),
             tripJustSaved = savedTrip,
