@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // No logic and no Android here.
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kover)
     alias(libs.plugins.kotlin.serialization)
 }
 

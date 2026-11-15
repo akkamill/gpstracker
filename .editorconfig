@@ -1,0 +1,26 @@
+# Code style for the whole project, read by Android Studio and ktlint.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+ktlint_code_style = android_studio
+max_line_length = 140
+# Composable functions are named like classes (DriveScreen), which is the Compose convention.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Trailing commas in multi-line lists, so adding a line changes one line in a diff.
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+# These two only choose between equally valid layouts (one line vs one parameter per line).
+# The project keeps its existing, consistent layout instead of churning every file.
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-signature = disabled
+
+[*.{yml,yaml,toml}]
+indent_size = 2
