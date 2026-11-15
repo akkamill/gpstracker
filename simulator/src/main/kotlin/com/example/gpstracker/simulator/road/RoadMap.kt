@@ -2,8 +2,8 @@ package com.example.gpstracker.simulator.road
 
 /**
  * The roads the simulated car can drive on, with speed limits. A tracker does not
- * know speed limits; in the real system they come from map data (for example
- * OpenStreetMap). For the simulation this small map plays that role.
+ * know speed limits; in the real system they come from open map data. For the
+ * simulation this small map plays that role.
  */
 class RoadMap(val roads: List<RoadSegment>, val places: List<Place>) {
 

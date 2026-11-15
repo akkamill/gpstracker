@@ -6,7 +6,7 @@ import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.simulator.road.Kaunas
 import com.example.gpstracker.simulator.road.RoadMap
 
-/** Speed limits and place names from the simulator's road map (OpenStreetMap data later). */
+/** Speed limits and place names from the simulator's road map (open map data later). */
 class SimulatorMapLookup(private val map: RoadMap = Kaunas.map) : MapLookup {
     override fun roadAt(latitude: Double, longitude: Double): RoadInfo? =
         map.roadAt(GeoPoint(latitude, longitude))?.let { RoadInfo(it.name, it.speedLimitKmh) }

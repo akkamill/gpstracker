@@ -42,7 +42,7 @@ private const val MIN_SPAN_DEG = 1e-5
 
 /**
  * Route map with a stable signature. Version 1 draws on a [Canvas], so it
- * needs no API key; a later step can swap the body for Google Maps Compose
+ * needs no API key; a later step can swap the body for a real map SDK
  * without touching any screen.
  */
 @Composable
