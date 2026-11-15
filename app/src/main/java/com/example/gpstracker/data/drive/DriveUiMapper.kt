@@ -107,7 +107,7 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
     fun tips(events: List<DrivingEvent>): List<String> {
         val first = events.groupBy { it.type }.mapValues { it.value.first() }
         return buildList {
-            first[DrivingEventType.Speeding]?.let { add("Keep to the posted limit, especially on ${it.roadName ?: "fast roads"}.") }
+            first[DrivingEventType.Speeding]?.let { add(sentence("Keep to the posted limit, especially on ${it.roadName ?: "fast roads"}")) }
             first[DrivingEventType.HarshBraking]?.let { add("Brake earlier and more gently before junctions.") }
             first[DrivingEventType.HarshAcceleration]?.let { add("Ease into the throttle when pulling away.") }
             first[DrivingEventType.SharpCorner]?.let { add("Slow down before corners rather than in them.") }
@@ -158,6 +158,9 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
     }
 
     private fun Trip.count(type: DrivingEventType) = events.count { it.type == type }
+
+    /** Ends [text] with one full stop, also when it ends with an abbreviation such as "g.". */
+    private fun sentence(text: String) = if (text.endsWith(".")) text else "$text."
 
     private companion object {
         const val TODAY = "Today"
