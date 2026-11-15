@@ -1,10 +1,11 @@
 package com.example.gpstracker.data.telematics
 
-import com.example.gpstracker.domain.driving.DrivingEventType
 import com.example.gpstracker.domain.trip.DriveTracker
-import com.example.gpstracker.domain.trip.Trip
+import com.example.gpstracker.model.driving.DrivingEventType
+import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.simulator.road.Kaunas
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
+import com.example.gpstracker.telematics.AvlTelemetryMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

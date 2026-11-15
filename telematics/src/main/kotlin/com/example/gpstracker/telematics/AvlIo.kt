@@ -1,10 +1,10 @@
-package com.example.gpstracker.simulator.avl
+package com.example.gpstracker.telematics
 
 /**
  * AVL IDs of the IO elements the simulated tracker sends.
  *
- * The numbers follow the AVL ID table of Teltonika FMB/FMC trackers. Check them
- * against the table of the exact device model before connecting real hardware.
+ * The numbers follow the AVL ID numbering common to commercial vehicle trackers. Check them
+ * against the documentation of the exact device model before connecting real hardware.
  */
 object AvlIo {
     /** 0 = off, 1 = on. */

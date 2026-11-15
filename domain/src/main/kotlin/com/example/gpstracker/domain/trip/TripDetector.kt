@@ -1,16 +1,6 @@
 package com.example.gpstracker.domain.trip
 
-/** What the car is doing, as far as trips are concerned. Comes from the device data, never from the user. */
-enum class VehicleState {
-    /** Trip in progress, car moving. */
-    Driving,
-
-    /** Trip in progress, car standing (traffic light, jam); the trip is not ended yet. */
-    Stopped,
-
-    /** No trip in progress: ignition off, or stationary long enough. */
-    Parked,
-}
+import com.example.gpstracker.model.trip.VehicleState
 
 /**
  * One reading from the car.

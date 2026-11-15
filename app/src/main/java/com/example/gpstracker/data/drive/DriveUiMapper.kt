@@ -4,13 +4,13 @@ import com.example.gpstracker.data.estimate.FuelEstimator
 import com.example.gpstracker.data.estimate.FuelInput
 import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.VehicleNumbers
-import com.example.gpstracker.domain.driving.DrivingEvent
-import com.example.gpstracker.domain.driving.DrivingEventType
+import com.example.gpstracker.model.driving.DrivingEvent
+import com.example.gpstracker.model.driving.DrivingEventType
 import com.example.gpstracker.domain.telemetry.ConnectionState
-import com.example.gpstracker.domain.telemetry.GnssQuality
-import com.example.gpstracker.domain.telemetry.LatLon
-import com.example.gpstracker.domain.trip.Trip
-import com.example.gpstracker.domain.trip.VehicleState as DomainVehicleState
+import com.example.gpstracker.model.telemetry.GnssQuality
+import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.model.trip.Trip
+import com.example.gpstracker.model.trip.VehicleState as DomainVehicleState
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DrivingEventUi
 import com.example.gpstracker.ui.model.EventType

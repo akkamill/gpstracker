@@ -1,5 +1,6 @@
 package com.example.gpstracker.domain.trip
 
+import com.example.gpstracker.model.trip.VehicleState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

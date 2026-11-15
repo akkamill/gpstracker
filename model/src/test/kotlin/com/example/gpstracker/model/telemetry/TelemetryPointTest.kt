@@ -1,4 +1,4 @@
-package com.example.gpstracker.domain.telemetry
+package com.example.gpstracker.model.telemetry
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

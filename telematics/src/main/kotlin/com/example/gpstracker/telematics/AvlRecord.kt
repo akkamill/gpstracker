@@ -1,10 +1,10 @@
-package com.example.gpstracker.simulator.avl
+package com.example.gpstracker.telematics
 
 /** How urgent a record is. Real trackers send Panic records first. */
 enum class AvlPriority { Low, High, Panic }
 
 /**
- * The GPS part of an AVL record, in the units a Teltonika tracker uses.
+ * The GPS part of an AVL record, in the units vehicle trackers use.
  *
  * Without a satellite fix the tracker keeps the last known coordinates but sends
  * [satellites] = 0, [speedKmh] = 0 and [angleDeg] = 0, so a receiver must check [hasFix].

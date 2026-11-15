@@ -1,6 +1,6 @@
 package com.example.gpstracker.simulator.vehicle
 
-import com.example.gpstracker.simulator.avl.AvlRecord
+import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.road.GeoPoint
 import kotlin.random.Random
 

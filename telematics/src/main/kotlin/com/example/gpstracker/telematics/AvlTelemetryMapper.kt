@@ -1,9 +1,9 @@
-package com.example.gpstracker.data.telematics
+package com.example.gpstracker.telematics
 
-import com.example.gpstracker.domain.telemetry.GnssQuality
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
-import com.example.gpstracker.simulator.avl.AvlIo
-import com.example.gpstracker.simulator.avl.AvlRecord
+import com.example.gpstracker.model.telemetry.GnssQuality
+import com.example.gpstracker.model.telemetry.TelemetryPoint
+import com.example.gpstracker.telematics.AvlIo
+import com.example.gpstracker.telematics.AvlRecord
 
 /**
  * Turns a tracker's AVL record into the app's [TelemetryPoint]. This is the only place
