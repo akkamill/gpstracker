@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.auth.AuthRepository
-import com.example.gpstracker.data.fake.FakeDriveSimulator
+import com.example.gpstracker.data.telematics.DemoControls
 import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.SessionState
 import com.example.gpstracker.ui.model.SettingsUiState
@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 class SettingsViewModel(
     private val store: MutableStateFlow<SettingsUiState> = AppContainer.settings,
     private val auth: AuthRepository = AppContainer.auth,
-    private val simulator: FakeDriveSimulator = AppContainer.simulator,
+    private val demo: DemoControls = AppContainer.demoControls,
 ) : ViewModel() {
 
     val state: StateFlow<SettingsUiState> = combine(store, auth.session) { settings, session ->
@@ -44,5 +44,5 @@ class SettingsViewModel(
     fun signOut() = auth.signOut()
 
     /** Debug-only presentation shortcut: moves the simulated car to its next drive. */
-    fun skipToNextDrive() = simulator.skipToNextDrive()
+    fun skipToNextDrive() = demo.skipToNextDrive()
 }
