@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.estimate.InsightsCalculator
 import com.example.gpstracker.data.estimate.toNumbers
-import com.example.gpstracker.data.fake.FakeDriveSimulator
+import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.ui.model.InsightsPeriod
 import com.example.gpstracker.ui.model.InsightsUiState
 import com.example.gpstracker.ui.model.SettingsUiState
@@ -21,14 +21,14 @@ import kotlinx.coroutines.flow.update
  * vehicle settings change, so a finished demo trip shows up here at once.
  */
 class InsightsViewModel(
-    simulator: FakeDriveSimulator = AppContainer.simulator,
+    repository: DriveRepository = AppContainer.drive,
     settings: StateFlow<SettingsUiState> = AppContainer.settings,
     private val calculator: InsightsCalculator = InsightsCalculator(),
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val period = MutableStateFlow(InsightsPeriod.Week)
 
-    val state: StateFlow<InsightsUiState> = combine(simulator.records, settings, period) { records, s, p ->
+    val state: StateFlow<InsightsUiState> = combine(repository.records, settings, period) { records, s, p ->
         calculator.compute(records, clock(), p, s.vehicle.toNumbers())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), InsightsUiState())
 
