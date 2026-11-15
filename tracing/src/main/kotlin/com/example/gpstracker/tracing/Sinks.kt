@@ -41,8 +41,11 @@ class MemorySink(
                 keep(traceId)
                 main += entry
             }
+
             record.level >= LogLevel.Info -> main += entry
+
             traceId != null && traceId in kept -> main += entry
+
             else -> debug += entry
         }
         trim(main, capacity)

@@ -4,14 +4,14 @@ import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.toNumbers
 import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.domain.driving.Scoring
-import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveSnapshot
 import com.example.gpstracker.domain.trip.DriveTracker
-import com.example.gpstracker.tracing.SpanContext
-import com.example.gpstracker.tracing.Tracing
+import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState
+import com.example.gpstracker.tracing.SpanContext
+import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.DrivingEventUi
@@ -22,6 +22,7 @@ import com.example.gpstracker.ui.model.TripDetailUi
 import com.example.gpstracker.ui.model.TripSummaryUi
 import com.example.gpstracker.ui.model.TripsUiState
 import com.example.gpstracker.ui.model.scoreBandOf
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /** Live driving data and trip history, ready for the screens. */
 interface DriveRepository {

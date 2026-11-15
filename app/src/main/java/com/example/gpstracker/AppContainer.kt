@@ -25,11 +25,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * → DriveTracker (:domain) → DriveRepository → ViewModels → screens.
  */
 object AppContainer {
-    /**
-     * Internal tracing for developers only; users never see it. In debug builds it goes
-     * to Logcat (filter "DM/"). Release builds write nothing for now; a server sink can
-     * collect traces later. Installed first so nothing is missed.
-     */
+    // Internal tracing for developers only; users never see it. In debug builds it goes
+    // to Logcat (filter "DM/"). Release builds write nothing for now; a server sink can
+    // collect traces later. Installed first so nothing is missed.
     init {
         if (BuildConfig.DEBUG) Tracing.install(LogcatSink())
     }

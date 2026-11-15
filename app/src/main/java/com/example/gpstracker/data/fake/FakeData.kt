@@ -47,26 +47,57 @@ object FakeData {
 
     val events: List<DrivingEventUi> = listOf(
         DrivingEventUi(
-            id = "e1", type = EventType.HarshBraking, title = "Harsh braking", detail = "−4.1 m/s²",
-            penalty = 3, timeLabel = "14:12", placeLabel = "Savanorių pr.", position = route[18],
+            id = "e1",
+            type = EventType.HarshBraking,
+            title = "Harsh braking",
+            detail = "−4.1 m/s²",
+            penalty = 3,
+            timeLabel = "14:12",
+            placeLabel = "Savanorių pr.",
+            position = route[18],
         ),
         DrivingEventUi(
-            id = "e2", type = EventType.Speeding, title = "Speeding", detail = "72 in a 50 zone",
-            penalty = 4, timeLabel = "14:19", placeLabel = "Savanorių pr.", position = route[36],
+            id = "e2",
+            type = EventType.Speeding,
+            title = "Speeding",
+            detail = "72 in a 50 zone",
+            penalty = 4,
+            timeLabel = "14:19",
+            placeLabel = "Savanorių pr.",
+            position = route[36],
         ),
         DrivingEventUi(
-            id = "e3", type = EventType.SharpCorner, title = "Sharp corner", detail = "0.5 g lateral",
-            penalty = 2, timeLabel = "14:26", placeLabel = "Jonavos g.", position = route[54],
+            id = "e3",
+            type = EventType.SharpCorner,
+            title = "Sharp corner",
+            detail = "0.5 g lateral",
+            penalty = 2,
+            timeLabel = "14:26",
+            placeLabel = "Jonavos g.",
+            position = route[54],
         ),
         DrivingEventUi(
-            id = "e4", type = EventType.HarshAcceleration, title = "Harsh acceleration", detail = "+3.6 m/s²",
-            penalty = 2, timeLabel = "14:33", placeLabel = "Karaliaus Mindaugo pr.", position = route[68],
+            id = "e4",
+            type = EventType.HarshAcceleration,
+            title = "Harsh acceleration",
+            detail = "+3.6 m/s²",
+            penalty = 2,
+            timeLabel = "14:33",
+            placeLabel = "Karaliaus Mindaugo pr.",
+            position = route[68],
         ),
     )
 
+    @Suppress("LongParameterList") // a compact builder for hand-written sample trips
     private fun summary(
-        id: String, date: String, range: String, fromTo: String,
-        km: Double, duration: String, score: Int, events: Int,
+        id: String,
+        date: String,
+        range: String,
+        fromTo: String,
+        km: Double,
+        duration: String,
+        score: Int,
+        events: Int,
     ) = TripSummaryUi(id, date, range, fromTo, km, duration, score, scoreBandOf(score), events)
 
     private const val ROUTE_FROM_TO = "Žaliakalnis → Akropolis"

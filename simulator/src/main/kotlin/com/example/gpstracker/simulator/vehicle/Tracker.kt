@@ -1,11 +1,11 @@
 package com.example.gpstracker.simulator.vehicle
 
+import com.example.gpstracker.simulator.road.Geo
+import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.telematics.AvlIo
 import com.example.gpstracker.telematics.AvlPriority
 import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.telematics.GpsElement
-import com.example.gpstracker.simulator.road.Geo
-import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.tracing.Tracing
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -109,7 +109,7 @@ class Tracker(
             GpsElement(
                 latitude = p.lat,
                 longitude = p.lon,
-                altitudeM = ALTITUDE_M + random.nextInt(-2, 3),
+                altitudeM = ALTITUDE_M + random.nextInt(-ALTITUDE_JITTER_M, ALTITUDE_JITTER_M + 1),
                 angleDeg = m.headingDeg.roundToInt() % FULL_TURN,
                 satellites = random.nextInt(MIN_SATELLITES, MAX_SATELLITES + 1),
                 speedKmh = if (standing) 0 else max(0, (m.speedMps * KMH_PER_MPS + jitter(noise.speedKmh)).roundToInt()),
@@ -159,6 +159,7 @@ class Tracker(
         const val KMH_PER_MPS = 3.6
         const val FULL_TURN = 360
         const val ALTITUDE_M = 72
+        const val ALTITUDE_JITTER_M = 2
         const val MIN_SATELLITES = 8
         const val MAX_SATELLITES = 12
         const val MIN_HDOP_X10 = 7L

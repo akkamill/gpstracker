@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Route
@@ -24,14 +24,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.example.gpstracker.ui.theme.NightBlue
 import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.PreviewStates
 import com.example.gpstracker.ui.components.AccountAvatar
@@ -44,6 +43,7 @@ import com.example.gpstracker.ui.model.TripSummaryUi
 import com.example.gpstracker.ui.model.TripsUiState
 import com.example.gpstracker.ui.model.scoreBandOf
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
+import com.example.gpstracker.ui.theme.NightBlue
 
 /** Trip history: weekly summary card and trips grouped by date. Stateless. */
 @OptIn(ExperimentalFoundationApi::class)
@@ -158,7 +158,13 @@ private fun WeekCard(state: TripsUiState, modifier: Modifier = Modifier) {
                 Text(
                     text = stringResource(
                         R.string.trips_week_summary,
-                        pluralStringResource(R.plurals.trips_count, state.sections.sumOf { it.second.size }, state.sections.sumOf { it.second.size }),
+                        pluralStringResource(
+                            R.plurals.trips_count,
+                            state.sections.sumOf {
+                                it.second.size
+                            },
+                            state.sections.sumOf { it.second.size },
+                        ),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -201,20 +207,27 @@ private const val BG = 0xFF0F1417
 @Preview(name = "Populated", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsPopulatedPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsPopulated, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {}, avatarInitials = "KA") }
+    DriveMetricsTheme {
+        TripsScreen(PreviewStates.tripsPopulated, isGuest = false, onTripClick = {
+        }, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {}, avatarInitials = "KA")
+    }
 }
 
 @Preview(name = "Empty", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsEmptyPreview() {
-    DriveMetricsTheme { TripsScreen(PreviewStates.tripsEmpty, isGuest = false, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {}) }
+    DriveMetricsTheme {
+        TripsScreen(PreviewStates.tripsEmpty, isGuest = false, onTripClick = {
+        }, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {})
+    }
 }
 
 @Preview(name = "Guest", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun TripsGuestPreview() {
     DriveMetricsTheme {
-        TripsScreen(PreviewStates.tripsPopulated, isGuest = true, onTripClick = {}, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {})
+        TripsScreen(PreviewStates.tripsPopulated, isGuest = true, onTripClick = {
+        }, onOpenSettings = {}, onCreateAccount = {}, onOpenDrive = {})
     }
 }
 

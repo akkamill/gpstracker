@@ -118,7 +118,9 @@ private fun PortraitLayout(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 StatTileRow(
                     tiles = listOf(
-                        { m -> StatTile(distanceValue(state), stringResource(R.string.unit_km), stringResource(R.string.stat_distance), m) },
+                        { m ->
+                            StatTile(distanceValue(state), stringResource(R.string.unit_km), stringResource(R.string.stat_distance), m)
+                        },
                         { m -> StatTile(state.durationLabel, null, stringResource(R.string.stat_time), m) },
                         { m -> StatTile(state.eventCount.toString(), null, stringResource(R.string.stat_events), m) },
                     ),
@@ -231,10 +233,12 @@ private fun Banner(state: DriveUiState, onOpenSettings: () -> Unit) {
             actionLabel = stringResource(R.string.nav_settings),
             onAction = onOpenSettings,
         )
+
         state.gps == GpsStatus.Lost && state.isTripInProgress -> StatusBanner(
             kind = BannerKind.GpsLost,
             message = stringResource(R.string.banner_gps_lost),
         )
+
         state.connection == ConnectionStatus.Reconnecting -> StatusBanner(
             kind = BannerKind.Reconnecting,
             message = stringResource(R.string.banner_reconnecting, state.retryInSeconds),

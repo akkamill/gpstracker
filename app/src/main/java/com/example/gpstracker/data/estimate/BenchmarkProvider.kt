@@ -17,6 +17,8 @@ interface BenchmarkSource {
  * Invented assumptions for a simulated typical driver. These are NOT real data
  * from other drivers and must always be labelled "Simulated benchmark".
  */
+private val DEFAULT_NOISE = listOf(0, 1, -1, 2, -2, 1, -1, 0)
+
 data class BenchmarkConfig(
     val score: Int = 74,
     val speedingPer100Km: Double = 2.0,
@@ -24,7 +26,7 @@ data class BenchmarkConfig(
     val harshAccelerationPer100Km: Double = 1.8,
     val sharpCornersPer100Km: Double = 1.2,
     /** Small repeating offsets that make the otherwise flat trend look natural. */
-    val noise: List<Int> = listOf(0, 1, -1, 2, -2, 1, -1, 0),
+    val noise: List<Int> = DEFAULT_NOISE,
 )
 
 class SimulatedBenchmarkSource(private val config: BenchmarkConfig = BenchmarkConfig()) : BenchmarkSource {

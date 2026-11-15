@@ -2,7 +2,7 @@ package com.example.gpstracker.ui.navigation
 
 import kotlinx.serialization.Serializable
 
-/** Type-safe navigation destinations and the two nested graphs. */
+// Type-safe navigation destinations and the two nested graphs.
 
 /** Everything shown while signed out. */
 @Serializable

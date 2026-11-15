@@ -3,11 +3,11 @@ package com.example.gpstracker.simulator
 import com.example.gpstracker.simulator.road.Geo
 import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.simulator.road.Kaunas
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.abs
 
 class RoadTest {
     private val route = Kaunas.toAkropolis

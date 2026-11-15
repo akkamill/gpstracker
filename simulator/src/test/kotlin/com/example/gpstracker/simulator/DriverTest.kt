@@ -6,10 +6,10 @@ import com.example.gpstracker.simulator.vehicle.DrivePlan
 import com.example.gpstracker.simulator.vehicle.Driver
 import com.example.gpstracker.simulator.vehicle.Incident
 import com.example.gpstracker.simulator.vehicle.Motion
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.abs
 
 class DriverTest {
 

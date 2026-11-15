@@ -61,10 +61,10 @@ object DemoPlans {
      * Expected events: harsh braking, harsh acceleration, speeding, sharp corner.
      */
     val toAkropolis: DrivePlan = Kaunas.toAkropolis.let { r ->
-        val savanoriuCity = r.segmentStartM(0)
-        val savanoriuFast = r.segmentStartM(1)
-        val jonavos = r.segmentStartM(2)
-        val mindaugo = r.segmentStartM(3)
+        val savanoriuCity = r.segmentStartM(Kaunas.savanoriuCity)
+        val savanoriuFast = r.segmentStartM(Kaunas.savanoriuFast)
+        val jonavos = r.segmentStartM(Kaunas.jonavos)
+        val mindaugo = r.segmentStartM(Kaunas.mindaugo)
         DrivePlan(
             route = r,
             incidents = listOf(
@@ -80,7 +80,7 @@ object DemoPlans {
 
     /** Back: a calm drive with one traffic light and no events. */
     val toZaliakalnis: DrivePlan = Kaunas.toZaliakalnis.let { r ->
-        DrivePlan(route = r, incidents = listOf(Incident.TrafficLight(atM = r.segmentStartM(3) + 1.1 * KM, waitS = 20)))
+        DrivePlan(route = r, incidents = listOf(Incident.TrafficLight(atM = r.segmentStartM(Kaunas.savanoriuFast) + 1.1 * KM, waitS = 20)))
     }
 
     val day: List<DrivePlan> = listOf(toAkropolis, toZaliakalnis)

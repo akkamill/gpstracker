@@ -1,7 +1,7 @@
 package com.example.gpstracker.simulator.vehicle
 
-import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.road.GeoPoint
+import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.tracing.Tracing
 import kotlin.random.Random
 
@@ -51,6 +51,7 @@ class SimulatedCar(
 
     private var phaseLeftS = timing.parkedS
     private var driver: Driver? = null
+
     /** Where the car stands when it is not driving, and which way it faces. */
     private var restAt: GeoPoint = plans.first().route.positionAt(0.0)
     private var restHeading: Double = plans.first().route.headingAt(0.0)
@@ -100,15 +101,18 @@ class SimulatedCar(
     private fun advancePhase() {
         when (phase) {
             CarPhase.Parked -> if (--phaseLeftS <= 0) enter(CarPhase.EngineIdle, timing.idleBeforeDriveS)
+
             CarPhase.EngineIdle -> if (--phaseLeftS <= 0) {
                 driver = Driver(currentPlan)
                 enter(CarPhase.Driving, 0)
             }
+
             CarPhase.Driving -> if (driver!!.finished) {
                 restAt = lastMotion.position
                 restHeading = lastMotion.headingDeg
                 enter(CarPhase.Arrived, timing.idleAfterDriveS)
             }
+
             CarPhase.Arrived -> if (--phaseLeftS <= 0) {
                 driver = null
                 planIndex = (planIndex + 1) % plans.size
@@ -122,12 +126,15 @@ class SimulatedCar(
         phaseLeftS = seconds
         when (next) {
             CarPhase.EngineIdle -> tracer.info("engine started", "at" to currentPlan.route.from.name)
+
             CarPhase.Driving -> tracer.info("drive started", "route" to currentPlan.route.name)
+
             CarPhase.Arrived -> if (driver?.crashed == true) {
                 tracer.warn("car stopped after a collision", "atM" to lastMotion.distanceM.toInt())
             } else {
                 tracer.info("arrived", "at" to currentPlan.route.to.name)
             }
+
             CarPhase.Parked -> tracer.info("engine stopped")
         }
     }

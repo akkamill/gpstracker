@@ -2,8 +2,8 @@ package com.example.gpstracker.ui.tripdetail
 
 import androidx.lifecycle.ViewModel
 import com.example.gpstracker.AppContainer
-import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.data.drive.DriveRepository
+import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.ui.model.TripDetailUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

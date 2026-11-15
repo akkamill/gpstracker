@@ -103,6 +103,13 @@ class Route(val name: String, val from: Place, val to: Place, val segments: List
         return if (firstLeg < 0) lengthM else cumulativeM[firstLeg]
     }
 
+    /** Distance from the start of the route to where [road] begins (matched by name and limit). */
+    fun segmentStartM(road: RoadSegment): Double {
+        val index = segments.indexOfFirst { it.name == road.name && it.speedLimitKmh == road.speedLimitKmh }
+        require(index >= 0) { "${road.name} is not on route $name" }
+        return segmentStartM(index)
+    }
+
     /** The corner whose arc contains [distanceM], if any. */
     fun cornerAt(distanceM: Double): Corner? = corners.firstOrNull { distanceM in it.startM..it.endM }
 

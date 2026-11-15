@@ -5,17 +5,17 @@ import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.VehicleNumbers
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.CrashAlertUiState
+import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.GpsStatus
 import com.example.gpstracker.ui.model.InsightsPeriod
-import com.example.gpstracker.ui.model.SignInUiState
-import com.example.gpstracker.ui.model.SignUpUiState
-import com.example.gpstracker.ui.model.VehicleErrorsUi
-import com.example.gpstracker.ui.model.VehicleProfileUi
 import com.example.gpstracker.ui.model.ScoreBand
 import com.example.gpstracker.ui.model.SettingsUiState
-import com.example.gpstracker.ui.model.DataSource
+import com.example.gpstracker.ui.model.SignInUiState
+import com.example.gpstracker.ui.model.SignUpUiState
 import com.example.gpstracker.ui.model.TripsUiState
+import com.example.gpstracker.ui.model.VehicleErrorsUi
+import com.example.gpstracker.ui.model.VehicleProfileUi
 import com.example.gpstracker.ui.model.VehicleState
 
 /** Canned states used by `@Preview`s and UI tests. Screens never build fake data inline. */

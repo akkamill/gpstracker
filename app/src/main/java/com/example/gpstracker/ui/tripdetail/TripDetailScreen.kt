@@ -129,12 +129,27 @@ private fun StatsGrid(state: TripDetailUi) {
     val summary = state.summary
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(Modifier.fillMaxWidth()) {
-            StatTile("%.1f".format(summary.distanceKm), stringResource(R.string.unit_km), stringResource(R.string.stat_distance), Modifier.weight(1f))
+            StatTile(
+                "%.1f".format(summary.distanceKm),
+                stringResource(R.string.unit_km),
+                stringResource(R.string.stat_distance),
+                Modifier.weight(1f),
+            )
             StatTile(summary.durationLabel, null, stringResource(R.string.stat_duration), Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth()) {
-            StatTile(state.avgSpeedKmh.toString(), stringResource(R.string.gauge_unit), stringResource(R.string.stat_avg_speed), Modifier.weight(1f))
-            StatTile(state.maxSpeedKmh.toString(), stringResource(R.string.gauge_unit), stringResource(R.string.stat_max_speed), Modifier.weight(1f))
+            StatTile(
+                state.avgSpeedKmh.toString(),
+                stringResource(R.string.gauge_unit),
+                stringResource(R.string.stat_avg_speed),
+                Modifier.weight(1f),
+            )
+            StatTile(
+                state.maxSpeedKmh.toString(),
+                stringResource(R.string.gauge_unit),
+                stringResource(R.string.stat_max_speed),
+                Modifier.weight(1f),
+            )
         }
     }
 }

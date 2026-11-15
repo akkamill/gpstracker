@@ -1,8 +1,8 @@
 package com.example.gpstracker.ui.auth.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.Icon
@@ -58,6 +58,7 @@ fun AuthTextField(
             error != null -> {
                 { Icon(Icons.Rounded.Error, contentDescription = stringResource(R.string.error_cd)) }
             }
+
             else -> trailing
         },
         supportingText = (error ?: supportingText)?.let { text -> { Text(text) } },
