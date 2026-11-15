@@ -10,7 +10,6 @@ import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.data.tracing.LogcatSink
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
-import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.SettingsUiState
 import kotlinx.coroutines.CoroutineScope
@@ -26,11 +25,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * → DriveTracker (:domain) → DriveRepository → ViewModels → screens.
  */
 object AppContainer {
-    /** Recent logs and traces, shown on the Logs screen. Installed first so nothing is missed. */
-    val logs = MemorySink()
-
+    /**
+     * Internal tracing for developers only; users never see it. In debug builds it goes
+     * to Logcat (filter "DM/"). Release builds write nothing for now; a server sink can
+     * collect traces later. Installed first so nothing is missed.
+     */
     init {
-        Tracing.install(LogcatSink(), logs)
+        if (BuildConfig.DEBUG) Tracing.install(LogcatSink())
     }
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
