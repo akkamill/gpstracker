@@ -6,8 +6,8 @@ import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.simulator.DevicePlayback
 import com.example.gpstracker.simulator.DeviceUpdate
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
-import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.telematics.AvlTelemetryMapper
+import com.example.gpstracker.tracing.Tracing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +53,7 @@ class SimulatedTelemetrySource(
                         _connection.value = ConnectionState.Reconnecting(attempt = 1)
                     }
                 }
+
                 is DeviceUpdate.Records -> update.records.forEach { emit(AvlTelemetryMapper.toTelemetry(it)) }
             }
         }

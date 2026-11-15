@@ -210,11 +210,8 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.lineStroke() =
 fun rememberReducedMotion(): Boolean {
     val context = LocalContext.current
     return remember(context) {
-        try {
-            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-        } catch (e: Exception) {
-            false
-        }
+        // This overload returns the default instead of throwing when the setting is missing.
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
 }
 

@@ -4,11 +4,11 @@ import com.example.gpstracker.data.estimate.FuelEstimator
 import com.example.gpstracker.data.estimate.FuelInput
 import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.VehicleNumbers
+import com.example.gpstracker.domain.telemetry.ConnectionState
 import com.example.gpstracker.model.driving.DrivingEvent
 import com.example.gpstracker.model.driving.DrivingEventType
-import com.example.gpstracker.domain.telemetry.ConnectionState
-import com.example.gpstracker.model.telemetry.GnssQuality
 import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.model.telemetry.GnssQuality
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState as DomainVehicleState
 import com.example.gpstracker.ui.model.ConnectionStatus
@@ -107,7 +107,9 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
     fun tips(events: List<DrivingEvent>): List<String> {
         val first = events.groupBy { it.type }.mapValues { it.value.first() }
         return buildList {
-            first[DrivingEventType.Speeding]?.let { add(sentence("Keep to the posted limit, especially on ${it.roadName ?: "fast roads"}")) }
+            first[DrivingEventType.Speeding]?.let {
+                add(sentence("Keep to the posted limit, especially on ${it.roadName ?: "fast roads"}"))
+            }
             first[DrivingEventType.HarshBraking]?.let { add("Brake earlier and more gently before junctions.") }
             first[DrivingEventType.HarshAcceleration]?.let { add("Ease into the throttle when pulling away.") }
             first[DrivingEventType.SharpCorner]?.let { add("Slow down before corners rather than in them.") }

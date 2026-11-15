@@ -4,6 +4,8 @@ import com.example.gpstracker.model.geo.LatLon
 import kotlinx.serialization.Serializable
 
 private const val MPS_TO_KMH = 3.6
+private const val MAX_LATITUDE = 90.0
+private const val MAX_LONGITUDE = 180.0
 
 /** How trustworthy the position is. */
 @Serializable
@@ -44,8 +46,8 @@ data class TelemetryPoint(
     val traceparent: String? = null,
 ) {
     init {
-        require(latitude in -90.0..90.0) { "latitude out of range: $latitude" }
-        require(longitude in -180.0..180.0) { "longitude out of range: $longitude" }
+        require(latitude in -MAX_LATITUDE..MAX_LATITUDE) { "latitude out of range: $latitude" }
+        require(longitude in -MAX_LONGITUDE..MAX_LONGITUDE) { "longitude out of range: $longitude" }
         require(speedMps >= 0.0) { "speed must not be negative: $speedMps" }
     }
 

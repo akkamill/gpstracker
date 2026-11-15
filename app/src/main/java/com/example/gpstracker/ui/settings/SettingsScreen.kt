@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
 import com.example.gpstracker.data.estimate.parseDecimal
 import com.example.gpstracker.data.fake.PreviewStates
-import com.example.gpstracker.ui.auth.initialsOf
 import com.example.gpstracker.ui.auth.components.PrimaryButton
+import com.example.gpstracker.ui.auth.initialsOf
 import com.example.gpstracker.ui.components.InfoBottomSheet
 import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.FuelType
@@ -442,7 +442,8 @@ private const val PHONE = "spec:width=411dp,height=1100dp"
 
 @Composable
 private fun PreviewScreen(state: SettingsUiState) {
-    DriveMetricsTheme { SettingsScreen(
+    DriveMetricsTheme {
+        SettingsScreen(
             state = state,
             onBack = {},
             onDataSourceChange = {},
@@ -456,7 +457,8 @@ private fun PreviewScreen(state: SettingsUiState) {
             onSignOut = {},
             onCreateAccount = {},
             showDebugTools = true,
-        ) }
+        )
+    }
 }
 
 @Preview(name = "Signed in", showBackground = true, backgroundColor = BG, device = PHONE)

@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CarCrash
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Circle
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.GpsFixed
 import androidx.compose.material.icons.rounded.GpsNotFixed
 import androidx.compose.material.icons.rounded.GpsOff

@@ -1,0 +1,54 @@
+# detekt settings. Only the differences from detekt's defaults are listed here
+# (the build runs detekt with --build-upon-default-config).
+#
+# Most changes are the usual adjustments for Jetpack Compose code, where screens are
+# functions named like classes, take many callbacks and list sizes such as 16.dp inline.
+
+build:
+  maxIssues: 0
+
+complexity:
+  LongParameterList:
+    # Screens receive one callback per user action, and constructors take dependencies
+    # with defaults; both are normal in this architecture.
+    ignoreAnnotated: ['Composable']
+    ignoreDefaultParameters: true
+  LongMethod:
+    # A screen is one function describing its whole layout.
+    ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    # Mappers and fakes are long lists of small, simple functions.
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    thresholdInObjects: 20
+    ignorePrivate: true
+
+naming:
+  MatchingDeclarationName:
+    # A UI file is named after its main composable, even when a small enum comes first.
+    excludes: ['**/ui/**']
+  FunctionNaming:
+    # Composables are named like classes: DriveScreen, SpeedGauge.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][_A-Z0-9]*'
+
+style:
+  ReturnCount:
+    # Early "return when there is nothing to do" lines make functions easier to read.
+    max: 3
+    excludeGuardClauses: true
+  MaxLineLength:
+    # Same limit as ktlint (.editorconfig).
+    maxLineLength: 140
+  MagicNumber:
+    # Layout sizes, colors and preview data are clearer inline than as named constants.
+    ignoreAnnotated: ['Composable', 'Preview']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/fake/**', '**/theme/**']
+  UnusedPrivateMember:
+    # Previews are used by Android Studio, not by code.
+    ignoreAnnotated: ['Preview']

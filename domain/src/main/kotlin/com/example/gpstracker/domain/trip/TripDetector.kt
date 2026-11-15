@@ -14,6 +14,9 @@ data class TripSample(
     val gpsValid: Boolean = true,
 )
 
+private const val DEFAULT_NO_DATA_MS = 10 * 60_000L
+private const val DEFAULT_TRIP_END_AFTER_MS = 5 * 60_000L
+
 /** Thresholds of the trip state machine. Times are in milliseconds of sample time. */
 data class TripDetectorConfig(
     val movingKmh: Double = 5.0,
@@ -24,9 +27,9 @@ data class TripDetectorConfig(
     /** Ignition off for less than this is a quick restart and keeps the same trip. */
     val ignitionGraceMs: Long = 30_000,
     /** No data for this long ends the trip at the last sample. */
-    val noDataMs: Long = 10 * 60_000,
+    val noDataMs: Long = DEFAULT_NO_DATA_MS,
     /** Standing still this long ends the trip; changeable in Settings (2, 5 or 10 minutes). */
-    val tripEndAfterMs: Long = 5 * 60_000,
+    val tripEndAfterMs: Long = DEFAULT_TRIP_END_AFTER_MS,
     val minDistanceKm: Double = 0.3,
     val minDurationMs: Long = 60_000,
 )
@@ -115,7 +118,9 @@ class TripDetector(private var config: TripDetectorConfig = TripDetectorConfig()
         val moving = sample.speedKmh > config.movingKmh
         when (sample.ignitionOn) {
             true -> if (moving) start(sample.timestampMs, events)
+
             false -> movingSinceMs = null
+
             null -> {
                 if (!moving) {
                     movingSinceMs = null

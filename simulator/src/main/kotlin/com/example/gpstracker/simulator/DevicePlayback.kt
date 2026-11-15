@@ -1,7 +1,7 @@
 package com.example.gpstracker.simulator
 
-import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
+import com.example.gpstracker.telematics.AvlRecord
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

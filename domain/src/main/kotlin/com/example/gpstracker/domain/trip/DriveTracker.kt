@@ -116,6 +116,7 @@ class DriveTracker(
                     tracer.info("trip started", "from" to point?.takeIf { it.hasPosition }?.let { placeOf(it.position) })
                     current = TripBuilder(event.startMs, point?.takeIf { it.hasPosition }?.let { placeOf(it.position) })
                 }
+
                 is TripEvent.Ended -> {
                     finished = current?.finish(event)?.also { trip ->
                         tracer.info(
@@ -129,6 +130,7 @@ class DriveTracker(
                     }
                     current = null
                 }
+
                 is TripEvent.Discarded -> {
                     tracer.debug("short movement ignored, not a trip")
                     current = null

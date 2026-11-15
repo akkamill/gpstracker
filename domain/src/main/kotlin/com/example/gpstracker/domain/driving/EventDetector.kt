@@ -4,6 +4,7 @@ import com.example.gpstracker.model.driving.DrivingEvent
 import com.example.gpstracker.model.driving.DrivingEventType
 import com.example.gpstracker.model.map.RoadInfo
 import com.example.gpstracker.model.telemetry.TelemetryPoint
+import com.example.gpstracker.tracing.LogLevel
 import com.example.gpstracker.tracing.Tracing
 import java.util.Locale
 import kotlin.math.abs
@@ -90,9 +91,9 @@ class EventDetector(initialRules: DrivingRules = DrivingRules()) {
             "penalty" to e.penalty,
         )
         if (e.type == DrivingEventType.CrashSuspected) {
-            tracer.warn("possible crash", *attributes)
+            tracer.log(LogLevel.Warn, "possible crash", attributes)
         } else {
-            tracer.info("driving event", *attributes)
+            tracer.log(LogLevel.Info, "driving event", attributes)
         }
     }
 
@@ -123,11 +124,9 @@ class EventDetector(initialRules: DrivingRules = DrivingRules()) {
                 peak = v
             }
             peak = max(peak, v)
-            if (!fired && point.timestampMs - firstSeen >= minDurationMs()) {
-                fired = true
-                return peak
-            }
-            return null
+            val confirmedNow = !fired && point.timestampMs - firstSeen >= minDurationMs()
+            if (confirmedNow) fired = true
+            return peak.takeIf { confirmedNow }
         }
 
         fun reset() {

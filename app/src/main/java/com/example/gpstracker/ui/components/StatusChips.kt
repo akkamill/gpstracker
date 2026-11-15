@@ -86,6 +86,7 @@ private fun StatusChip(
                 color = Concrete,
                 strokeWidth = 2.dp,
             )
+
             icon != null -> {
                 val angle = if (spinning) spinAngle() else 0f
                 Icon(

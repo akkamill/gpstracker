@@ -83,8 +83,17 @@ fun FuelCard(
         } else {
             StatTileRow(
                 tiles = listOf(
-                    { m -> StatTile(oneDecimal(estimate.fuelUsedL), stringResource(R.string.unit_l), stringResource(R.string.fuel_used), m) },
-                    { m -> StatTile(twoDecimals(estimate.fuelWastedL), stringResource(R.string.unit_l), stringResource(R.string.fuel_wasted), m) },
+                    { m ->
+                        StatTile(oneDecimal(estimate.fuelUsedL), stringResource(R.string.unit_l), stringResource(R.string.fuel_used), m)
+                    },
+                    { m ->
+                        StatTile(
+                            twoDecimals(estimate.fuelWastedL),
+                            stringResource(R.string.unit_l),
+                            stringResource(R.string.fuel_wasted),
+                            m,
+                        )
+                    },
                     { m -> StatTile(oneDecimal(estimate.co2Kg), stringResource(R.string.unit_kg), stringResource(R.string.fuel_co2), m) },
                 ),
             )

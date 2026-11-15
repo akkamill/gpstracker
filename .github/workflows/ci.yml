@@ -1,0 +1,66 @@
+name: CI
+
+# Runs on every push and pull request: code style, code checks, all unit tests,
+# test coverage and the debug app build. A red result means something to fix.
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      # 17 builds the modules; 25 runs Gradle itself (gradle/gradle-daemon-jvm.properties).
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Code style (ktlint)
+        run: ./gradlew ktlintCheck
+
+      - name: Code checks (detekt)
+        run: ./gradlew detekt
+
+      - name: Unit tests
+        run: >
+          ./gradlew
+          :tracing:test :model:test :telematics:test :domain:test :simulator:test
+          :app:testDebugUnitTest
+
+      - name: Test coverage (at least 80 % of lines)
+        run: ./gradlew koverVerify koverHtmlReport koverXmlReport
+
+      - name: Build the app
+        run: ./gradlew :app:assembleDebug
+
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            build/reports/
+            */build/reports/tests/
+            app/build/reports/tests/
+          if-no-files-found: ignore
+
+      - name: Keep the app
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/*.apk

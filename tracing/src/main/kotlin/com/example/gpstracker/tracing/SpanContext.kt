@@ -35,7 +35,9 @@ data class SpanContext(val traceId: String, val spanId: String, val sampled: Boo
         fun parse(traceparent: String?): SpanContext? {
             val parts = traceparent?.trim()?.split('-') ?: return null
             if (parts.size != PARTS || parts[0] != VERSION) return null
-            val (_, traceId, spanId, flags) = parts
+            val traceId = parts[1]
+            val spanId = parts[2]
+            val flags = parts[PARTS - 1]
             if (!isValidId(traceId, TRACE_ID_LENGTH) || !isValidId(spanId, SPAN_ID_LENGTH)) return null
             if (flags != SAMPLED && flags != NOT_SAMPLED) return null
             return SpanContext(traceId, spanId, flags == SAMPLED)

@@ -82,54 +82,66 @@ class Driver(private val plan: DrivePlan, private val style: DriverStyle = Drive
     }
 
     private fun drive(dtS: Double) {
-        crash?.let {
-            if (distanceM >= it.atM) {
-                speedMps = 0.0
-                crashed = true
-                finished = true
-                return
-            }
-        }
+        if (hitCrash()) return
         val v0 = speedMps
-        val accel = when (val brake = braking) {
-            null -> {
-                val target = targetSpeed()
-                if (launching && (v0 >= style.launchUntilKmh / KMH_PER_MPS || v0 >= target)) launching = false
-                val maxAccel = if (launching) style.launchAccelMps2 else style.accelMps2
-                ((target - v0) / dtS).coerceIn(-style.decelMps2, maxAccel)
-            }
-            else -> {
-                if (v0 <= brake.toKmh / KMH_PER_MPS) {
-                    braking = null
-                    0.0
-                } else {
-                    -brake.decelMps2
-                }
-            }
-        }
-        var v1 = max(0.0, v0 + accel * dtS)
-        val travelled = (v0 + v1) / 2 * dtS
-        var next = distanceM + travelled
+        var v1 = max(0.0, v0 + acceleration(v0, dtS) * dtS)
+        var next = distanceM + (v0 + v1) / 2 * dtS
+        startSuddenBrakeIfReached(next)
 
-        brakes.getOrNull(nextBrake)?.let {
-            if (next >= it.atM) {
-                braking = it
-                nextBrake++
-            }
-        }
         val stopAt = lights.getOrNull(nextLight)?.atM ?: route.lengthM
-        if (next >= stopAt - ARRIVE_M && v0 < ARRIVE_SPEED_MPS || next >= stopAt) {
+        val arrivingSlowly = next >= stopAt - ARRIVE_M && v0 < ARRIVE_SPEED_MPS
+        if (arrivingSlowly || next >= stopAt) {
             next = stopAt
             v1 = 0.0
-            if (nextLight < lights.size) {
-                waitLeftS = lights[nextLight].waitS
-                nextLight++
-            } else {
-                finished = true
-            }
+            arriveAtStop()
         }
         distanceM = next
         speedMps = v1
+    }
+
+    /** Stops the car for good when it reaches a planned crash. */
+    private fun hitCrash(): Boolean {
+        val at = crash?.atM ?: return false
+        if (distanceM < at) return false
+        speedMps = 0.0
+        crashed = true
+        finished = true
+        return true
+    }
+
+    /** Hard braking while a sudden brake is going on, otherwise the driver's normal choice. */
+    private fun acceleration(v0: Double, dtS: Double): Double {
+        val brake = braking ?: return chosenAcceleration(v0, dtS)
+        if (v0 <= brake.toKmh / KMH_PER_MPS) {
+            braking = null
+            return 0.0
+        }
+        return -brake.decelMps2
+    }
+
+    private fun chosenAcceleration(v0: Double, dtS: Double): Double {
+        val target = targetSpeed()
+        if (launching && (v0 >= style.launchUntilKmh / KMH_PER_MPS || v0 >= target)) launching = false
+        val maxAccel = if (launching) style.launchAccelMps2 else style.accelMps2
+        return ((target - v0) / dtS).coerceIn(-style.decelMps2, maxAccel)
+    }
+
+    private fun startSuddenBrakeIfReached(distance: Double) {
+        val next = brakes.getOrNull(nextBrake) ?: return
+        if (distance >= next.atM) {
+            braking = next
+            nextBrake++
+        }
+    }
+
+    /** At a red light the car waits; at the end of the route the drive is over. */
+    private fun arriveAtStop() {
+        if (nextLight < lights.size) {
+            waitLeftS = lights[nextLight].waitS
+            nextLight++
+        } else {
+            finished = true
+        }
     }
 
     /**

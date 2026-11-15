@@ -92,6 +92,7 @@ class Tracer internal constructor(val module: String) {
      * Runs [block] as a span: it is current while the block runs, so logs and child spans
      * join it; failures are recorded on the span and rethrown.
      */
+    @Suppress("TooGenericExceptionCaught") // records any failure on the span, then rethrows it
     inline fun <T> span(
         name: String,
         parent: SpanContext? = Tracing.currentContext(),

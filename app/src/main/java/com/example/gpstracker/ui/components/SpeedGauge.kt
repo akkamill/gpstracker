@@ -91,7 +91,15 @@ fun SpeedGauge(
 
             drawArc(KerbHigh, START_ANGLE, SWEEP_ANGLE, false, topLeft, arcSize, style = Stroke(strokeWidth, cap = StrokeCap.Round))
             if (!inactive) {
-                drawArc(arcColor, START_ANGLE, SWEEP_ANGLE * fraction, false, topLeft, arcSize, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+                drawArc(
+                    arcColor,
+                    START_ANGLE,
+                    SWEEP_ANGLE * fraction,
+                    false,
+                    topLeft,
+                    arcSize,
+                    style = Stroke(strokeWidth, cap = StrokeCap.Round),
+                )
             }
 
             fun pointAt(kmh: Float, r: Float): Offset {
@@ -133,7 +141,13 @@ fun SpeedGauge(
             Text(
                 text = if (offline) stringResource(R.string.sign_unknown_text) else shownSpeed.toString(),
                 style = MaterialTheme.typography.speedValue,
-                color = if (inactive) Concrete else if (isOverLimit) SignRed else LineWhite,
+                color = if (inactive) {
+                    Concrete
+                } else if (isOverLimit) {
+                    SignRed
+                } else {
+                    LineWhite
+                },
             )
             Text(
                 text = stringResource(R.string.gauge_unit),

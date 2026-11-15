@@ -3,9 +3,9 @@ package com.example.gpstracker.ui.insights
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gpstracker.AppContainer
+import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.estimate.InsightsCalculator
 import com.example.gpstracker.data.estimate.toNumbers
-import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.ui.model.InsightsPeriod
 import com.example.gpstracker.ui.model.InsightsUiState
 import com.example.gpstracker.ui.model.SettingsUiState

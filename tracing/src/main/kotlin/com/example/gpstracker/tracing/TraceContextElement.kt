@@ -1,10 +1,10 @@
 package com.example.gpstracker.tracing
 
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.AbstractCoroutineContextElement
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Carries the current span through coroutines. A coroutine can continue on a different
@@ -25,6 +25,7 @@ class TraceContextElement(val spanContext: SpanContext?) :
 }
 
 /** Like [Tracer.span], for suspending code: the span stays current across suspensions and thread switches. */
+@Suppress("TooGenericExceptionCaught") // records any failure on the span, then rethrows it
 suspend fun <T> Tracer.withSpan(
     name: String,
     parent: SpanContext? = null,

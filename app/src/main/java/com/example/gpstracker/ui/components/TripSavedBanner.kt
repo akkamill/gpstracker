@@ -35,8 +35,8 @@ import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.ui.model.TripSummaryUi
 import com.example.gpstracker.ui.theme.DriveColors
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
-import kotlinx.coroutines.delay
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 private const val SLIDE_MS = 250
 private const val VISIBLE_MS = 6_000L

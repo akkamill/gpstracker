@@ -49,7 +49,9 @@ fun TripStatusBar(
             } else {
                 stringResource(R.string.status_driving_plain)
             }
+
         VehicleState.Stopped -> stringResource(R.string.status_stopped)
+
         VehicleState.Parked -> stringResource(R.string.status_parked)
     }
     Row(

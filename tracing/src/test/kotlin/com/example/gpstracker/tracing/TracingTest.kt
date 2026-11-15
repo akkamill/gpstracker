@@ -53,7 +53,10 @@ class TracingTest {
         tracer.span("work") { tracer.info("inside", "speed" to 52) }
         tracer.info("after")
 
-        val (before, inside, span, after) = records
+        val before = records[0]
+        val inside = records[1]
+        val span = records[2]
+        val after = records[3]
         assertNull(before.traceId)
         assertEquals("inside", inside.name)
         assertEquals(mapOf("speed" to "52"), inside.attributes)

@@ -1,14 +1,15 @@
 package com.example.gpstracker.simulator
 
-import com.example.gpstracker.telematics.AvlIo
-import com.example.gpstracker.telematics.AvlPriority
-import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.road.Geo
 import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.simulator.road.Kaunas
 import com.example.gpstracker.simulator.vehicle.CarPhase
 import com.example.gpstracker.simulator.vehicle.Noise
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
+import com.example.gpstracker.telematics.AvlIo
+import com.example.gpstracker.telematics.AvlPriority
+import com.example.gpstracker.telematics.AvlRecord
+import kotlin.math.abs
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -16,7 +17,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.abs
 
 class SimulatedCarTest {
     private val start = 1_700_000_000_000L
