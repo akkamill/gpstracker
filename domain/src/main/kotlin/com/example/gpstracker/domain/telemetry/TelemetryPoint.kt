@@ -1,14 +1,29 @@
 package com.example.gpstracker.domain.telemetry
 
+/** How trustworthy the position is. */
+enum class GnssQuality {
+    Good,
+    Weak,
+
+    /** No satellite fix: coordinates are the last known ones, do not use them for the route. */
+    Lost,
+}
+
+/** A latitude/longitude pair in degrees. */
+data class LatLon(val latitude: Double, val longitude: Double)
+
 /**
- * One telemetry sample from a vehicle or phone.
+ * One telemetry sample from a vehicle tracker or a phone, already converted to SI units.
+ * Device formats (such as Teltonika AVL records) are mapped into this in the data layer.
  *
  * @property timestampMs sample time in epoch milliseconds
  * @property latitude degrees, -90..90
  * @property longitude degrees, -180..180
  * @property speedMps ground speed in metres per second, never negative
  * @property headingDeg direction of travel in degrees, 0 until < 360
- * @property accelerationMps2 longitudinal acceleration; negative while braking
+ * @property accelerationMps2 forward acceleration; negative while braking
+ * @property lateralAccelerationMps2 sideways acceleration in corners; positive to the left
+ * @property ignitionOn null when the source cannot tell (a phone, for example)
  */
 data class TelemetryPoint(
     val timestampMs: Long,
@@ -17,6 +32,9 @@ data class TelemetryPoint(
     val speedMps: Double,
     val headingDeg: Double = 0.0,
     val accelerationMps2: Double = 0.0,
+    val lateralAccelerationMps2: Double = 0.0,
+    val ignitionOn: Boolean? = null,
+    val gnss: GnssQuality = GnssQuality.Good,
 ) {
     init {
         require(latitude in -90.0..90.0) { "latitude out of range: $latitude" }
@@ -26,6 +44,11 @@ data class TelemetryPoint(
 
     /** Speed in kilometres per hour. */
     val speedKmh: Double get() = speedMps * MPS_TO_KMH
+
+    /** False when the coordinates are stale (no satellite fix). */
+    val hasPosition: Boolean get() = gnss != GnssQuality.Lost
+
+    val position: LatLon get() = LatLon(latitude, longitude)
 
     private companion object {
         const val MPS_TO_KMH = 3.6
