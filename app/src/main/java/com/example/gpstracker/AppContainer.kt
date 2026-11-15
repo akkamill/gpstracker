@@ -4,11 +4,14 @@ import com.example.gpstracker.data.auth.AuthRepository
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.drive.TelemetryDriveRepository
 import com.example.gpstracker.data.fake.FakeAuthRepository
+import com.example.gpstracker.data.reports.InMemoryReportRepository
+import com.example.gpstracker.data.reports.RoadReportService
 import com.example.gpstracker.data.telematics.DemoControls
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.data.tracing.LogcatSink
 import com.example.gpstracker.domain.trip.DriveTracker
+import com.example.gpstracker.simulator.vehicle.CommunityReports
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.SettingsUiState
@@ -45,9 +48,13 @@ object AppContainer {
     /** Demo helpers that move the simulated car. */
     val demoControls: DemoControls = telemetry
 
+    /** Road reports, seeded with demo reports from "other drivers" until the server shares real ones. */
+    val reports = RoadReportService(InMemoryReportRepository(CommunityReports.demo(System.currentTimeMillis())))
+
     val drive: DriveRepository = TelemetryDriveRepository(
         source = telemetry,
         tracker = DriveTracker(map = SimulatorMapLookup()),
         settings = settings,
+        reports = reports,
     ).also { it.start(appScope) }
 }

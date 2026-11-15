@@ -17,5 +17,7 @@ fun DriveRoute(
         state = state,
         onOpenTrip = onOpenTrip,
         onOpenSettings = onOpenSettings,
+        onReport = viewModel::onReport,
+        onAnswerStillThere = viewModel::onAnswerStillThere,
     )
 }

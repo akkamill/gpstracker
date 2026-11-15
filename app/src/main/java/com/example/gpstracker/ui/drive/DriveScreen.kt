@@ -14,16 +14,25 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,20 +44,26 @@ import com.example.gpstracker.ui.components.EventBanner
 import com.example.gpstracker.ui.components.GpsChip
 import com.example.gpstracker.ui.components.KeepScreenOn
 import com.example.gpstracker.ui.components.LastTripCard
+import com.example.gpstracker.ui.components.ReportAheadBanner
+import com.example.gpstracker.ui.components.ReportSentBanner
+import com.example.gpstracker.ui.components.ReportSheet
 import com.example.gpstracker.ui.components.ScoreBadge
 import com.example.gpstracker.ui.components.SpeedGauge
 import com.example.gpstracker.ui.components.SpeedLimitSign
 import com.example.gpstracker.ui.components.StatTile
 import com.example.gpstracker.ui.components.StatTileRow
 import com.example.gpstracker.ui.components.StatusBanner
+import com.example.gpstracker.ui.components.StillTherePrompt
 import com.example.gpstracker.ui.components.TripSavedBanner
 import com.example.gpstracker.ui.components.TripStatusBar
 import com.example.gpstracker.ui.components.labelRes
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.GpsStatus
+import com.example.gpstracker.ui.model.ReportKind
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 /**
  * Live dashboard. Read-only: it shows what the car reports and nothing on it
@@ -61,24 +76,77 @@ fun DriveScreen(
     onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    onReport: (ReportKind) -> Unit = {},
+    onAnswerStillThere: (String, Boolean) -> Unit = { _, _ -> },
 ) {
     KeepScreenOn(enabled = state.isTripInProgress)
+    var showReportSheet by remember { mutableStateOf(false) }
+    var justReported by remember { mutableStateOf<ReportKind?>(null) }
+    LaunchedEffect(justReported) {
+        if (justReported != null) {
+            delay(REPORT_SENT_VISIBLE_MS)
+            justReported = null
+        }
+    }
+    val openReports = { showReportSheet = true }
+
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val landscape = maxWidth > maxHeight
         if (landscape) {
-            LandscapeLayout(state, onOpenTrip, onOpenSettings)
+            LandscapeLayout(state, onOpenTrip, onOpenSettings, openReports)
         } else {
-            PortraitLayout(state, onOpenTrip, onOpenSettings)
+            PortraitLayout(state, onOpenTrip, onOpenSettings, openReports)
         }
-        EventBanner(
-            event = state.latestEvent,
+        Column(
             modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
-        )
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            EventBanner(event = state.latestEvent)
+            ReportAheadBanner(ahead = state.reportAhead)
+            ReportSentBanner(kind = justReported)
+        }
         TripSavedBanner(
             trip = state.tripJustSaved,
             onView = onOpenTrip,
             modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 64.dp),
         )
+        StillTherePrompt(
+            report = state.stillThere,
+            onAnswer = onAnswerStillThere,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 88.dp),
+        )
+    }
+
+    if (showReportSheet) {
+        ReportSheet(
+            onReport = { kind ->
+                showReportSheet = false
+                onReport(kind)
+                justReported = kind
+            },
+            onDismiss = { showReportSheet = false },
+        )
+    }
+}
+
+private const val REPORT_SENT_VISIBLE_MS = 3_000L
+
+/** The trip status line, with the report button next to it once the car's position is known. */
+@Composable
+private fun BottomRow(state: DriveUiState, onReportClick: () -> Unit, modifier: Modifier = Modifier) {
+    val reportDescription = stringResource(R.string.report_button_cd)
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        TripStatusBar(state.vehicleState, state.tripStartedLabel, Modifier.weight(1f))
+        if (state.canReport) {
+            ExtendedFloatingActionButton(
+                onClick = onReportClick,
+                icon = { Icon(Icons.Rounded.Campaign, contentDescription = null) },
+                text = { Text(stringResource(R.string.report_button)) },
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { contentDescription = reportDescription },
+            )
+        }
     }
 }
 
@@ -87,6 +155,7 @@ private fun PortraitLayout(
     state: DriveUiState,
     onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onReportClick: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Column(
@@ -129,11 +198,7 @@ private fun PortraitLayout(
                 ParkedContent(state, onOpenTrip)
             }
         }
-        TripStatusBar(
-            vehicleState = state.vehicleState,
-            tripStartedLabel = state.tripStartedLabel,
-            modifier = Modifier.padding(vertical = 16.dp),
-        )
+        BottomRow(state, onReportClick, Modifier.padding(vertical = 16.dp))
     }
 }
 
@@ -142,6 +207,7 @@ private fun LandscapeLayout(
     state: DriveUiState,
     onOpenTrip: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onReportClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -187,7 +253,7 @@ private fun LandscapeLayout(
                     ParkedContent(state, onOpenTrip)
                 }
             }
-            TripStatusBar(state.vehicleState, state.tripStartedLabel)
+            BottomRow(state, onReportClick)
         }
     }
 }
@@ -296,6 +362,14 @@ private fun FirstUsePreview() = PreviewScreen(PreviewStates.driveFirstUse)
 @Preview(name = "3 Driving", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun DrivingPreview() = PreviewScreen(PreviewStates.driveDriving)
+
+@Preview(name = "Report ahead", showBackground = true, backgroundColor = BG, device = PHONE)
+@Composable
+private fun ReportAheadPreview() = PreviewScreen(PreviewStates.driveReportAhead)
+
+@Preview(name = "Still there?", showBackground = true, backgroundColor = BG, device = PHONE)
+@Composable
+private fun StillTherePreview() = PreviewScreen(PreviewStates.driveStillThere)
 
 @Preview(name = "4 Over limit", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable

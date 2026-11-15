@@ -269,4 +269,23 @@
     <string name="settings_trip_end_hint">Trips also end when the engine is turned off. Short stops, like traffic lights, don\'t split a trip.</string>
     <string name="settings_trip_auto_note">Trips start automatically when the car moves.</string>
     <string name="settings_skip_drive">Skip to next drive</string>
+
+    <!-- Driver reports -->
+    <string name="report_button">Report</string>
+    <string name="report_button_cd">Report something on the road</string>
+    <string name="report_sheet_title">Report on the road</string>
+    <string name="report_sheet_body">One tap. It is placed where your car is now, for drivers coming this way.</string>
+    <string name="report_kind_accident">Accident</string>
+    <string name="report_kind_police">Police</string>
+    <string name="report_kind_hazard">Hazard</string>
+    <string name="report_kind_jam">Traffic jam</string>
+    <string name="report_kind_closed">Road closed</string>
+    <string name="report_kind_camera">Speed camera</string>
+    <string name="report_ahead_title">%1$s ahead</string>
+    <string name="report_ahead_detail">%1$s, %2$s</string>
+    <string name="report_on_road">%1$s on %2$s</string>
+    <string name="report_still_there_question">Is it still there?</string>
+    <string name="report_still_there_yes">Yes</string>
+    <string name="report_still_there_no">No, it\'s gone</string>
+    <string name="report_sent">%1$s reported. Thank you!</string>
 </resources>

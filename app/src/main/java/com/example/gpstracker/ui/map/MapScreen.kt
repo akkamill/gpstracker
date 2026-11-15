@@ -57,6 +57,7 @@ fun MapScreen(
             currentPosition = state.position ?: state.route.lastOrNull(),
             followCurrent = followCurrent && inProgress,
             dimmed = !inProgress,
+            reports = state.reports,
             modifier = Modifier.fillMaxSize(),
         )
         Row(
@@ -146,6 +147,12 @@ private const val BG = 0xFF0F1417
 @Composable
 private fun MapActivePreview() {
     DriveMetricsTheme { MapScreen(PreviewStates.driveOverLimit, onRecenter = {}) }
+}
+
+@Preview(name = "With road reports", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
+@Composable
+private fun MapReportsPreview() {
+    DriveMetricsTheme { MapScreen(PreviewStates.driveReportAhead, onRecenter = {}) }
 }
 
 @Preview(name = "Empty", showBackground = true, backgroundColor = BG, device = "spec:width=411dp,height=891dp")
