@@ -1,8 +1,8 @@
 package com.example.gpstracker.simulator
 
-import com.example.gpstracker.simulator.avl.AvlIo
-import com.example.gpstracker.simulator.avl.AvlPriority
-import com.example.gpstracker.simulator.avl.AvlRecord
+import com.example.gpstracker.telematics.AvlIo
+import com.example.gpstracker.telematics.AvlPriority
+import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.road.Geo
 import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.simulator.road.Kaunas

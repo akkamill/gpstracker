@@ -4,12 +4,12 @@ import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.toNumbers
 import com.example.gpstracker.data.fake.FakeData
 import com.example.gpstracker.domain.driving.Scoring
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
+import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveSnapshot
 import com.example.gpstracker.domain.trip.DriveTracker
-import com.example.gpstracker.domain.trip.Trip
-import com.example.gpstracker.domain.trip.VehicleState
+import com.example.gpstracker.model.trip.Trip
+import com.example.gpstracker.model.trip.VehicleState
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.DrivingEventUi

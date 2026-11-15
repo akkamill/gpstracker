@@ -1,5 +1,6 @@
 package com.example.gpstracker.domain.telemetry
 
+import com.example.gpstracker.model.telemetry.TelemetryPoint
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 

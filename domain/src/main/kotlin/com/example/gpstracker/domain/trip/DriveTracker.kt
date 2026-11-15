@@ -1,13 +1,15 @@
 package com.example.gpstracker.domain.trip
 
-import com.example.gpstracker.domain.driving.DrivingEvent
 import com.example.gpstracker.domain.driving.DrivingRules
 import com.example.gpstracker.domain.driving.EventDetector
 import com.example.gpstracker.domain.driving.Scoring
 import com.example.gpstracker.domain.map.MapLookup
-import com.example.gpstracker.domain.map.RoadInfo
-import com.example.gpstracker.domain.telemetry.LatLon
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
+import com.example.gpstracker.model.driving.DrivingEvent
+import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.model.map.RoadInfo
+import com.example.gpstracker.model.telemetry.TelemetryPoint
+import com.example.gpstracker.model.trip.Trip
+import com.example.gpstracker.model.trip.VehicleState
 import kotlin.math.max
 
 /** The trip being driven right now. */
@@ -22,31 +24,6 @@ data class TripProgress(
     val score: Int,
     val startPlace: String?,
 )
-
-/** A finished trip, ready to be stored. */
-data class Trip(
-    val startMs: Long,
-    val endMs: Long,
-    val distanceKm: Double,
-    val events: List<DrivingEvent>,
-    val route: List<LatLon>,
-    val maxSpeedKmh: Double,
-    /** Time spent above the limit plus tolerance; used by the fuel estimate. */
-    val speedingMs: Long,
-    val score: Int,
-    val startPlace: String?,
-    val endPlace: String?,
-    /** True when the trip ended because data stopped arriving. */
-    val endedWithoutSignal: Boolean,
-) {
-    val durationMs: Long get() = endMs - startMs
-
-    val avgSpeedKmh: Double get() = if (durationMs <= 0) 0.0 else distanceKm / (durationMs / MS_PER_HOUR)
-
-    private companion object {
-        const val MS_PER_HOUR = 3_600_000.0
-    }
-}
 
 /** Everything known about the car right now. */
 data class DriveSnapshot(

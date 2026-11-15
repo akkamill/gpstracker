@@ -1,8 +1,10 @@
-package com.example.gpstracker.domain.driving
+package com.example.gpstracker.model.driving
 
-import com.example.gpstracker.domain.telemetry.LatLon
+import com.example.gpstracker.model.geo.LatLon
+import kotlinx.serialization.Serializable
 
 /** Kinds of risky driving behaviour the app recognises. */
+@Serializable
 enum class DrivingEventType { Speeding, HarshBraking, HarshAcceleration, SharpCorner, CrashSuspected }
 
 /**
@@ -15,6 +17,7 @@ enum class DrivingEventType { Speeding, HarshBraking, HarshAcceleration, SharpCo
  * @property speedLimitKmh the limit at that place, if known
  * @property roadName the road at that place, if known
  */
+@Serializable
 data class DrivingEvent(
     val type: DrivingEventType,
     val timestampMs: Long,

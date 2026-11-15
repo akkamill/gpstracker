@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// A simulated in-car telematics tracker (Teltonika style). Pure Kotlin, no Android,
+// A simulated car with an in-car vehicle tracker. Pure Kotlin, no Android,
 // so the app, the server and a command-line tool can all run the same fake car.
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -19,6 +19,7 @@ kotlin {
 }
 
 dependencies {
+    api(project(":telematics"))
     api(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

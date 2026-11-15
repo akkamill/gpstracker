@@ -1,11 +1,12 @@
 package com.example.gpstracker.domain.trip
 
-import com.example.gpstracker.domain.driving.DrivingEventType
 import com.example.gpstracker.domain.driving.DrivingRules
 import com.example.gpstracker.domain.map.MapLookup
-import com.example.gpstracker.domain.map.RoadInfo
-import com.example.gpstracker.domain.telemetry.GnssQuality
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
+import com.example.gpstracker.model.driving.DrivingEventType
+import com.example.gpstracker.model.map.RoadInfo
+import com.example.gpstracker.model.telemetry.GnssQuality
+import com.example.gpstracker.model.telemetry.TelemetryPoint
+import com.example.gpstracker.model.trip.VehicleState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

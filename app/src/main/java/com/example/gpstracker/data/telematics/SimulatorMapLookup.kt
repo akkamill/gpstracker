@@ -1,7 +1,7 @@
 package com.example.gpstracker.data.telematics
 
 import com.example.gpstracker.domain.map.MapLookup
-import com.example.gpstracker.domain.map.RoadInfo
+import com.example.gpstracker.model.map.RoadInfo
 import com.example.gpstracker.simulator.road.GeoPoint
 import com.example.gpstracker.simulator.road.Kaunas
 import com.example.gpstracker.simulator.road.RoadMap

@@ -1,9 +1,9 @@
 package com.example.gpstracker.simulator.vehicle
 
-import com.example.gpstracker.simulator.avl.AvlIo
-import com.example.gpstracker.simulator.avl.AvlPriority
-import com.example.gpstracker.simulator.avl.AvlRecord
-import com.example.gpstracker.simulator.avl.GpsElement
+import com.example.gpstracker.telematics.AvlIo
+import com.example.gpstracker.telematics.AvlPriority
+import com.example.gpstracker.telematics.AvlRecord
+import com.example.gpstracker.telematics.GpsElement
 import com.example.gpstracker.simulator.road.Geo
 import com.example.gpstracker.simulator.road.GeoPoint
 import kotlin.math.max
@@ -34,7 +34,7 @@ data class Noise(
 
 /**
  * The simulated tracker box. It turns the car's state into [AvlRecord]s the way a
- * Teltonika device does:
+ * typical vehicle tracker does:
  *
  * - a record every second while the ignition is on, and every [parkedPeriodS] while parked;
  * - an extra high-priority record when the ignition changes;

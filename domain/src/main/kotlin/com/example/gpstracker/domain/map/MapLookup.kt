@@ -1,11 +1,6 @@
 package com.example.gpstracker.domain.map
 
-/**
- * The road under the car.
- *
- * @property speedLimitKmh null when the limit is not known
- */
-data class RoadInfo(val name: String, val speedLimitKmh: Int?)
+import com.example.gpstracker.model.map.RoadInfo
 
 /**
  * Map knowledge the tracker itself does not have: which road the car is on, its

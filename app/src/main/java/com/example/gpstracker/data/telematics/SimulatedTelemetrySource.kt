@@ -1,11 +1,12 @@
 package com.example.gpstracker.data.telematics
 
 import com.example.gpstracker.domain.telemetry.ConnectionState
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
 import com.example.gpstracker.domain.telemetry.TelemetrySource
+import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.simulator.DevicePlayback
 import com.example.gpstracker.simulator.DeviceUpdate
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
+import com.example.gpstracker.telematics.AvlTelemetryMapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,7 @@ interface DemoControls {
 }
 
 /**
- * Demo data source: a simulated car with a Teltonika-style tracker, played in real
+ * Demo data source: a simulated car with a vehicle tracker, played in real
  * time. When the tracker loses mobile coverage the connection shows as reconnecting,
  * and the buffered records arrive together when it is back.
  *

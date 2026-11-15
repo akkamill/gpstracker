@@ -1,10 +1,10 @@
-package com.example.gpstracker.data.telematics
+package com.example.gpstracker.telematics
 
-import com.example.gpstracker.domain.telemetry.GnssQuality
-import com.example.gpstracker.simulator.avl.AvlIo
-import com.example.gpstracker.simulator.avl.AvlPriority
-import com.example.gpstracker.simulator.avl.AvlRecord
-import com.example.gpstracker.simulator.avl.GpsElement
+import com.example.gpstracker.model.telemetry.GnssQuality
+import com.example.gpstracker.telematics.AvlIo
+import com.example.gpstracker.telematics.AvlPriority
+import com.example.gpstracker.telematics.AvlRecord
+import com.example.gpstracker.telematics.GpsElement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

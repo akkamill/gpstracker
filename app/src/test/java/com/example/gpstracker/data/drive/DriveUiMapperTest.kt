@@ -1,8 +1,8 @@
 package com.example.gpstracker.data.drive
 
-import com.example.gpstracker.domain.driving.DrivingEvent
-import com.example.gpstracker.domain.driving.DrivingEventType
-import com.example.gpstracker.domain.telemetry.LatLon
+import com.example.gpstracker.model.driving.DrivingEvent
+import com.example.gpstracker.model.driving.DrivingEventType
+import com.example.gpstracker.model.geo.LatLon
 import com.example.gpstracker.ui.model.EventType
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -1,5 +1,6 @@
 package com.example.gpstracker.domain.driving
 
+import com.example.gpstracker.model.driving.DrivingEventType
 import kotlin.math.max
 import kotlin.math.roundToInt
 

@@ -1,7 +1,9 @@
 package com.example.gpstracker.domain.driving
 
-import com.example.gpstracker.domain.map.RoadInfo
-import com.example.gpstracker.domain.telemetry.TelemetryPoint
+import com.example.gpstracker.model.driving.DrivingEvent
+import com.example.gpstracker.model.driving.DrivingEventType
+import com.example.gpstracker.model.map.RoadInfo
+import com.example.gpstracker.model.telemetry.TelemetryPoint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
