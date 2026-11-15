@@ -108,6 +108,14 @@ class SimulatedCarTest {
     }
 
     @Test
+    fun `a parked car reports speed 0 and does not wander, even with GPS noise`() {
+        val car = SimulatedCar(start)
+        val parked = (1..120).flatMap { car.step() }
+        assertTrue(parked.all { it.gps.speedKmh == 0 })
+        assertEquals(1, parked.map { it.gps.latitude to it.gps.longitude }.distinct().size)
+    }
+
+    @Test
     fun `the same seed gives exactly the same records`() {
         val a = SimulatedCar(start, seed = 3)
         val b = SimulatedCar(start, seed = 3)

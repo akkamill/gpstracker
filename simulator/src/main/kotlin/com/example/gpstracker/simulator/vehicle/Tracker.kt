@@ -39,6 +39,8 @@ data class Noise(
  * - a record every second while the ignition is on, and every [parkedPeriodS] while parked;
  * - an extra high-priority record when the ignition changes;
  * - without a satellite fix it keeps the last coordinates, with 0 satellites and speed 0;
+ * - "static navigation": while the car stands still it repeats the last position with
+ *   speed 0, so GPS noise does not make a parked car look as if it moves;
  * - without mobile coverage it keeps records in memory and sends them all when coverage returns.
  */
 class Tracker(
@@ -79,8 +81,10 @@ class Tracker(
 
     private fun record(state: CarState, eventIo: Int): AvlRecord {
         val m = state.motion
+        val standing = m.speedMps <= MOVING_MPS
         val gps = if (state.gnssAvailable) {
-            val p = Geo.offset(m.position, jitter(noise.positionM), jitter(noise.positionM))
+            val held = lastFix.takeIf { standing }
+            val p = held ?: Geo.offset(m.position, jitter(noise.positionM), jitter(noise.positionM))
             lastFix = p
             GpsElement(
                 latitude = p.lat,
@@ -88,7 +92,7 @@ class Tracker(
                 altitudeM = ALTITUDE_M + random.nextInt(-2, 3),
                 angleDeg = m.headingDeg.roundToInt() % FULL_TURN,
                 satellites = random.nextInt(MIN_SATELLITES, MAX_SATELLITES + 1),
-                speedKmh = max(0, (m.speedMps * KMH_PER_MPS + jitter(noise.speedKmh)).roundToInt()),
+                speedKmh = if (standing) 0 else max(0, (m.speedMps * KMH_PER_MPS + jitter(noise.speedKmh)).roundToInt()),
             )
         } else {
             val p = lastFix ?: m.position
