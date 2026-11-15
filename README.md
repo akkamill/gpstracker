@@ -1,5 +1,7 @@
 # DriveMetrics
 
+[![CI](https://github.com/akkamill/gpstracker/actions/workflows/ci.yml/badge.svg)](https://github.com/akkamill/gpstracker/actions/workflows/ci.yml)
+
 ## About
 
 DriveMetrics is an Android app that turns a car's data into a live driving dashboard and a
@@ -29,14 +31,17 @@ GPS or server. Fuel, money and benchmark values are estimates and are labelled a
 - Jetpack Compose and Material 3
 - Navigation Compose (type-safe routes)
 - ViewModel, StateFlow and coroutines
-- Kotlin serialization (for navigation routes)
+- Kotlin serialization (navigation routes and JSON models)
 - Gradle with a version catalog
-- JUnit and Compose UI tests
+- JUnit, coroutine test helpers and Compose UI tests
+- ktlint, detekt and Kover for code style, code checks and test coverage
+- GitHub Actions for continuous integration
 
 ## Project structure
 
 ```
 gpstracker/
+├── tracing/                Internal logs and traces that follow one sample through all modules
 ├── model/                  Plain data classes shared by all modules (JSON-ready)
 ├── telematics/             Vehicle tracker data format (AVL records) and its conversion
 ├── domain/                 Driving rules: events, score, trip detection
@@ -45,6 +50,7 @@ gpstracker/
 │   └── src/main/java/com/example/gpstracker/
 │       ├── data/
 │       │   ├── telematics/ Simulated data source and road map lookup
+│       │   ├── tracing/    Sends traces to Logcat in debug builds
 │       │   ├── drive/      Runs the driving rules and prepares data for the screens
 │       │   ├── estimate/   Fuel estimate, benchmark, insights
 │       │   ├── auth/       Account interface
@@ -55,12 +61,18 @@ gpstracker/
 │           ├── components/ Reusable pieces: gauge, charts, cards, banners
 │           ├── navigation/ Routes and bottom bar
 │           └── auth, drive, map, trips, tripdetail, insights, settings, crash
+├── config/detekt/          Code check settings
 └── docs/                   Screenshots and font license
 ```
 
 Dependencies point one way: `app` uses `domain`, `telematics` and `simulator`;
 `domain` and `telematics` use `model`; `model` uses nothing of ours. The driving rules
-therefore never depend on Android, a device format or a screen.
+therefore never depend on Android, a device format or a screen. Every module may use
+`tracing`, which depends on nothing of ours either.
+
+Tracing is for developers only. Each tracker record starts a trace, and every module logs
+its step under the same trace ID. In a debug build, open Logcat in Android Studio and
+filter on `DM/` (or `DM/domain` for one module). Release builds write no logs.
 
 Each screen has a stateless `Screen` composable, a `Route` that connects it to its
 `ViewModel`, and a `ViewModel` that exposes one immutable state.
@@ -70,7 +82,7 @@ Each screen has a stateless `Screen` composable, a `Route` that connects it to i
 Unit tests (no device needed):
 
 ```bash
-./gradlew :model:test :telematics:test :domain:test :simulator:test :app:testDebugUnitTest
+./gradlew :tracing:test :model:test :telematics:test :domain:test :simulator:test :app:testDebugUnitTest
 ```
 
 UI tests (an emulator or a phone must be connected):
@@ -78,6 +90,20 @@ UI tests (an emulator or a phone must be connected):
 ```bash
 ./gradlew connectedDebugAndroidTest
 ```
+
+## Code quality
+
+The same checks run on GitHub for every push (see the CI badge above).
+
+```bash
+./gradlew ktlintCheck      # code style; ./gradlew ktlintFormat fixes most of it
+./gradlew detekt           # code smells and complexity
+./gradlew koverHtmlReport  # test coverage of the pure-Kotlin modules
+./gradlew koverVerify      # fails if that coverage is below 80 %
+```
+
+Reports are written to `build/reports/`. Style rules live in `.editorconfig`, code check
+rules in `config/detekt/detekt.yml`; both explain each change from the defaults.
 
 ## Run the app
 
