@@ -21,6 +21,7 @@ kotlin {
 dependencies {
     api(project(":telematics"))
     api(libs.kotlinx.coroutines.core)
+    implementation(project(":tracing"))
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

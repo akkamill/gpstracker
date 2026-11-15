@@ -24,6 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "gpstracker"
 include(":app")
+include(":tracing")
 include(":model")
 include(":telematics")
 include(":domain")

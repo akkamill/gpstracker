@@ -4,8 +4,11 @@ import com.example.gpstracker.model.driving.DrivingEvent
 import com.example.gpstracker.model.driving.DrivingEventType
 import com.example.gpstracker.model.map.RoadInfo
 import com.example.gpstracker.model.telemetry.TelemetryPoint
+import com.example.gpstracker.tracing.Tracing
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * Finds driving events in a stream of samples. Holds state, does no I/O.
@@ -18,6 +21,8 @@ class EventDetector(initialRules: DrivingRules = DrivingRules()) {
 
     /** Can be changed at any time, for example when the user picks another tolerance. */
     var rules: DrivingRules = initialRules
+
+    private val tracer = Tracing.tracer("domain")
 
     private val detectors = listOf(
         Threshold(
@@ -66,10 +71,28 @@ class EventDetector(initialRules: DrivingRules = DrivingRules()) {
             }
         }
         // A crash also looks like extreme braking; report it once, as a crash.
-        return if (events.any { it.type == DrivingEventType.CrashSuspected }) {
+        val found = if (events.any { it.type == DrivingEventType.CrashSuspected }) {
             events.filterNot { it.type == DrivingEventType.HarshBraking }
         } else {
             events
+        }
+        found.forEach(::log)
+        return found
+    }
+
+    private fun log(e: DrivingEvent) {
+        val attributes = arrayOf(
+            "type" to e.type,
+            "peak" to "%.1f".format(Locale.US, e.peak),
+            "speedKmh" to e.speedKmh.roundToInt(),
+            "limit" to e.speedLimitKmh,
+            "road" to e.roadName,
+            "penalty" to e.penalty,
+        )
+        if (e.type == DrivingEventType.CrashSuspected) {
+            tracer.warn("possible crash", *attributes)
+        } else {
+            tracer.info("driving event", *attributes)
         }
     }
 

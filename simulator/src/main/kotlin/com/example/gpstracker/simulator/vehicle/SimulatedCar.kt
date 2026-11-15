@@ -2,6 +2,7 @@ package com.example.gpstracker.simulator.vehicle
 
 import com.example.gpstracker.telematics.AvlRecord
 import com.example.gpstracker.simulator.road.GeoPoint
+import com.example.gpstracker.tracing.Tracing
 import kotlin.random.Random
 
 /** What the car is doing in its daily loop. */
@@ -34,6 +35,7 @@ class SimulatedCar(
     }
 
     private val lock = Any()
+    private val tracer = Tracing.tracer("simulator")
     private val engine = Engine()
     private val tracker = Tracker(Random(seed), noise)
 
@@ -118,6 +120,16 @@ class SimulatedCar(
     private fun enter(next: CarPhase, seconds: Int) {
         phase = next
         phaseLeftS = seconds
+        when (next) {
+            CarPhase.EngineIdle -> tracer.info("engine started", "at" to currentPlan.route.from.name)
+            CarPhase.Driving -> tracer.info("drive started", "route" to currentPlan.route.name)
+            CarPhase.Arrived -> if (driver?.crashed == true) {
+                tracer.warn("car stopped after a collision", "atM" to lastMotion.distanceM.toInt())
+            } else {
+                tracer.info("arrived", "at" to currentPlan.route.to.name)
+            }
+            CarPhase.Parked -> tracer.info("engine stopped")
+        }
     }
 
     private fun isOnline() = !(phase == CarPhase.Driving && currentPlan.coverageLostAt(lastMotion.distanceM))

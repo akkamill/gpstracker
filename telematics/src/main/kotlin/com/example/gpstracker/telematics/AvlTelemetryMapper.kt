@@ -2,8 +2,7 @@ package com.example.gpstracker.telematics
 
 import com.example.gpstracker.model.telemetry.GnssQuality
 import com.example.gpstracker.model.telemetry.TelemetryPoint
-import com.example.gpstracker.telematics.AvlIo
-import com.example.gpstracker.telematics.AvlRecord
+import com.example.gpstracker.tracing.Tracing
 
 /**
  * Turns a tracker's AVL record into the app's [TelemetryPoint]. This is the only place
@@ -12,6 +11,8 @@ import com.example.gpstracker.telematics.AvlRecord
  * - Speed comes from the car's computer (OBD) when available: it is exact and keeps
  *   working without GPS, for example under a bridge. Otherwise GPS speed is used.
  * - Accelerometer axes arrive in milli-g and are converted to m/s².
+ * - Each record starts a new trace here, where data enters our system; the sample
+ *   carries it on (see [TelemetryPoint.traceparent]).
  */
 object AvlTelemetryMapper {
     private const val G_MPS2 = 9.81
@@ -20,7 +21,16 @@ object AvlTelemetryMapper {
     private const val MIN_GOOD_SATELLITES = 6
     private const val MAX_GOOD_HDOP_X10 = 20L
 
-    fun toTelemetry(record: AvlRecord): TelemetryPoint {
+    private val tracer = Tracing.tracer("telematics")
+
+    fun toTelemetry(record: AvlRecord): TelemetryPoint = tracer.span("avl.decode", parent = null) { span ->
+        span.attribute("satellites", record.gps.satellites)
+        span.attribute("io", record.io.size)
+        if (record.eventIoId != 0) span.attribute("eventIo", record.eventIoId)
+        decode(record).copy(traceparent = span.context.traceparent)
+    }
+
+    private fun decode(record: AvlRecord): TelemetryPoint {
         val gps = record.gps
         val speedKmh = record[AvlIo.OBD_VEHICLE_SPEED]?.toDouble()
             ?: if (gps.hasFix) gps.speedKmh.toDouble() else 0.0

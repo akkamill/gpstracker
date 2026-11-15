@@ -27,6 +27,8 @@ enum class GnssQuality {
  * @property accelerationMps2 forward acceleration; negative while braking
  * @property lateralAccelerationMps2 sideways acceleration in corners; positive to the left
  * @property ignitionOn null when the source cannot tell (a phone, for example)
+ * @property traceparent W3C trace context of this sample, so every module that handles it
+ * can log under the same trace (like a request header); null when not traced
  */
 @Serializable
 data class TelemetryPoint(
@@ -39,6 +41,7 @@ data class TelemetryPoint(
     val lateralAccelerationMps2: Double = 0.0,
     val ignitionOn: Boolean? = null,
     val gnss: GnssQuality = GnssQuality.Good,
+    val traceparent: String? = null,
 ) {
     init {
         require(latitude in -90.0..90.0) { "latitude out of range: $latitude" }

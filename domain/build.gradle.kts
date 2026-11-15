@@ -19,6 +19,7 @@ kotlin {
 dependencies {
     api(project(":model"))
     api(libs.kotlinx.coroutines.core)
+    implementation(project(":tracing"))
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

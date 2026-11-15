@@ -361,7 +361,7 @@ List row, min height 64 dp: event icon in a 40 dp circle (`KerbHigh`), title (`t
 - Current position: 18 dp `LineWhite` circle with `NightBlue` 4 dp ring.
 - Small text label bottom-left: "Map preview" (`labelMedium`, `Concrete`).
 
-Keep the composable signature stable – a later step swaps the implementation to Google Maps Compose without changing any screen.
+Keep the composable signature stable – a later step swaps the implementation to a real map SDK without changing any screen.
 
 ### 4.10 `EmptyState(icon, title, message, actionLabel?, onAction?)`
 Centered column, icon 48 dp `Concrete`, title `titleMedium`, message `bodyMedium` `Concrete`, optional `OutlinedButton`.
@@ -761,7 +761,7 @@ Interface `AuthRepository { val session: StateFlow<SessionState>; suspend fun si
 - Sign in fails with "Email or password is incorrect." on mismatch; sign up fails with "An account with this email already exists." for existing emails.
 - Session starts as `SignedOut` (later: persisted with DataStore).
 - **Never log passwords**; store only a hash even in the fake (`MessageDigest` SHA-256 is fine for the fake; real auth replaces this entirely).
-- Real implementation later: Firebase Authentication or the project's own backend – decided after the teacher confirms scope.
+- Real implementation later: the project's own backend.
 
 ### 13.5 `TripDetector` (pure Kotlin, unit tested, in `data/estimate/` for now; moves to `:domain` later)
 A small state machine that turns the stream of samples into trips. **This replaces any manual start/stop.** Input per sample: timestamp, speed, `ignitionOn: Boolean?` (null = device doesn't report it), GPS valid.

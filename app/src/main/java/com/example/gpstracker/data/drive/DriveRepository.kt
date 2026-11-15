@@ -8,6 +8,8 @@ import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveSnapshot
 import com.example.gpstracker.domain.trip.DriveTracker
+import com.example.gpstracker.tracing.SpanContext
+import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState
 import com.example.gpstracker.ui.model.ConnectionStatus
@@ -25,6 +27,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -59,6 +63,7 @@ class TelemetryDriveRepository(
     seedHistory: Boolean = true,
 ) : DriveRepository {
     private val lock = Any()
+    private val tracer = Tracing.tracer("app")
 
     private var snapshot = DriveSnapshot()
     private var summaries: List<TripSummaryUi> = if (seedHistory) FakeData.trips else emptyList()
@@ -86,11 +91,12 @@ class TelemetryDriveRepository(
     /** Starts listening in [scope]. Call once. */
     fun start(scope: CoroutineScope) {
         scope.launch {
-            settings.collect { s ->
+            settings.map { it.speedTolerance to it.tripEndAfterMinutes }.distinctUntilChanged().collect { (tolerance, endAfter) ->
                 synchronized(lock) {
-                    tracker.rules = tracker.rules.copy(speedingToleranceKmh = s.speedTolerance)
-                    tracker.setTripEndAfterMinutes(s.tripEndAfterMinutes)
+                    tracker.rules = tracker.rules.copy(speedingToleranceKmh = tolerance)
+                    tracker.setTripEndAfterMinutes(endAfter)
                 }
+                tracer.info("driving rules set", "toleranceKmh" to tolerance, "tripEndAfterMin" to endAfter)
             }
         }
         scope.launch { source.connection.collect { publish() } }
@@ -103,7 +109,15 @@ class TelemetryDriveRepository(
         }
     }
 
+    /** Runs in the sample's own trace, so the domain's logs join it. */
     private fun onPoint(point: TelemetryPoint) = synchronized(lock) {
+        tracer.span("drive.update", parent = SpanContext.parse(point.traceparent)) { span ->
+            span.attribute("speedKmh", point.speedKmh.roundToInt())
+            process(point)
+        }
+    }
+
+    private fun process(point: TelemetryPoint) {
         val update = tracker.onPoint(point)
         snapshot = update.snapshot
         update.newEvents.lastOrNull()?.let {
@@ -125,6 +139,7 @@ class TelemetryDriveRepository(
         savedTrip = summary
         savedAtMs = clock()
         latestEvent = null
+        tracer.info("trip saved", "id" to id, "route" to summary.fromTo, "score" to summary.score)
     }
 
     private fun expireBanners() = synchronized(lock) {
