@@ -17,6 +17,8 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":domain"))
     implementation(project(":tracing"))
+    // the demo road reports along the simulator's routes
+    implementation(project(":simulator"))
 
     implementation(platform(libs.ktor.bom))
     implementation(libs.ktor.server.core)

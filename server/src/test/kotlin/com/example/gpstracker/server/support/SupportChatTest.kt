@@ -11,6 +11,8 @@ import com.example.gpstracker.server.accounts.InMemoryAccountRepository
 import com.example.gpstracker.server.auth.AuthService
 import com.example.gpstracker.server.auth.Tokens
 import com.example.gpstracker.server.driveMetrics
+import com.example.gpstracker.server.reports.InMemoryReportStore
+import com.example.gpstracker.server.reports.ReportService
 import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.client.HttpClient
@@ -58,6 +60,7 @@ class SupportChatTest {
                     auth = AuthService(InMemoryAccountRepository(), tokens, PasswordHasher(iterations = 2)),
                     tokens = tokens,
                     databaseUp = { true },
+                    reports = ReportService(InMemoryReportStore()),
                     support = SupportHub(InMemorySupportRepository(names = { names.getValue(it) })),
                     agentKey = AGENT_KEY,
                 ),

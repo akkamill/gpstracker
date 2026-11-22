@@ -16,6 +16,8 @@ data class ServerConfig(
     val seedDemoAccount: Boolean = false,
     /** The support team's key for the chat page; without one, the page cannot join chats. */
     val supportAgentKey: String? = null,
+    /** Keeps demo road reports along the demo routes, for local development and demos. */
+    val seedDemoReports: Boolean = false,
 ) {
     override fun toString() = "ServerConfig(port=$port, databaseUrl=$databaseUrl, databaseUser=$databaseUser, secrets=***)"
 
@@ -37,6 +39,7 @@ data class ServerConfig(
                 tokenLifetimeDays = env["TOKEN_LIFETIME_DAYS"]?.toLongOrNull() ?: DEFAULT_TOKEN_DAYS,
                 seedDemoAccount = env["SEED_DEMO_ACCOUNT"].toBoolean(),
                 supportAgentKey = env["SUPPORT_AGENT_KEY"]?.takeIf { it.isNotBlank() },
+                seedDemoReports = env["SEED_DEMO_REPORTS"].toBoolean(),
             )
         }
     }
