@@ -57,7 +57,7 @@ class SimulatedDrivePipelineTest {
     fun `events carry the road and limit where they happened`() {
         val there = dayOfTrips(seed = 7).first()
         val speeding = there.events.single { it.type == DrivingEventType.Speeding }
-        assertEquals("Jonavos g.", speeding.roadName)
+        assertEquals("Vytauto pr.", speeding.roadName)
         assertEquals(50, speeding.speedLimitKmh)
         assertEquals("Savanorių pr.", there.events.first { it.type == DrivingEventType.HarshBraking }.roadName)
     }

@@ -159,8 +159,8 @@ class Driver(private val plan: DrivePlan, private val style: DriverStyle = Drive
         val stopAt = lights.getOrNull(nextLight)?.atM ?: route.lengthM
         target = min(target, sqrt(2 * plan * max(0.0, stopAt - s)) + CREEP_MPS)
 
-        // Slow down for corners ahead (or the one we are in).
-        route.corners.filter { it.isSharp && it.endM > distanceM }.forEach { corner ->
+        // Slow down for corners ahead (or the one we are in); wide bends allow full speed anyway.
+        route.corners.filter { it.endM > distanceM }.forEach { corner ->
             val vc = carelessCorners[corner] ?: sqrt(style.cornerLateralMps2 * corner.radiusM)
             target = min(target, sqrt(vc * vc + 2 * plan * max(0.0, corner.startM - s)))
         }

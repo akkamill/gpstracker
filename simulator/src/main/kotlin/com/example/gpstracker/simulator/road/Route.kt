@@ -1,6 +1,9 @@
 package com.example.gpstracker.simulator.road
 
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.tan
 
 /** A named stretch of road with one speed limit, drawn as a polyline. */
 data class RoadSegment(val name: String, val speedLimitKmh: Int, val points: List<GeoPoint>) {
@@ -70,12 +73,20 @@ class Route(val name: String, val from: Place, val to: Place, val segments: List
         lengthM = cumulativeM.last()
         corners = (1 until pts.size - 1).mapNotNull { i ->
             val turn = Geo.turnDeg(legBearing(i - 1), legBearing(i))
-            if (abs(turn) < MIN_CORNER_DEG) {
-                null
-            } else {
-                Corner(cumulativeM[i], turn, if (abs(turn) >= Corner.SHARP_TURN_DEG) SHARP_RADIUS_M else GENTLE_RADIUS_M)
-            }
+            if (abs(turn) < MIN_CORNER_DEG) null else Corner(cumulativeM[i], turn, radiusAt(i, turn))
         }
+    }
+
+    /**
+     * A junction turn is tight and a gentle bend is wide, but a bend also has to fit on the
+     * road around it: each corner may use at most half of the straight pieces on either side,
+     * so the many short pieces of a real curved street make tighter bends that never overlap.
+     */
+    private fun radiusAt(vertex: Int, turnDeg: Double): Double {
+        val nominal = if (abs(turnDeg) >= Corner.SHARP_TURN_DEG) SHARP_RADIUS_M else GENTLE_RADIUS_M
+        val room = min(cumulativeM[vertex] - cumulativeM[vertex - 1], cumulativeM[vertex + 1] - cumulativeM[vertex]) / 2
+        val fits = room / tan(Geo.toRad(abs(turnDeg)) / 2)
+        return max(MIN_RADIUS_M, min(nominal, fits))
     }
 
     private fun legBearing(leg: Int): Double = Geo.bearingDeg(points[leg], points[leg + 1])
@@ -103,10 +114,10 @@ class Route(val name: String, val from: Place, val to: Place, val segments: List
         return if (firstLeg < 0) lengthM else cumulativeM[firstLeg]
     }
 
-    /** Distance from the start of the route to where [road] begins (matched by name and limit). */
-    fun segmentStartM(road: RoadSegment): Double {
-        val index = segments.indexOfFirst { it.name == road.name && it.speedLimitKmh == road.speedLimitKmh }
-        require(index >= 0) { "${road.name} is not on route $name" }
+    /** Distance from the start of the route to where the street called [street] begins. */
+    fun segmentStartM(street: String): Double {
+        val index = segments.indexOfFirst { it.name == street }
+        require(index >= 0) { "$street is not on route $name" }
         return segmentStartM(index)
     }
 
@@ -136,6 +147,7 @@ class Route(val name: String, val from: Place, val to: Place, val segments: List
         const val MIN_CORNER_DEG = 3.0
         const val SHARP_RADIUS_M = 20.0
         const val GENTLE_RADIUS_M = 250.0
+        const val MIN_RADIUS_M = 5.0
         const val SMALL_M = 0.01
     }
 }

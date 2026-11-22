@@ -61,26 +61,26 @@ object DemoPlans {
      * Expected events: harsh braking, harsh acceleration, speeding, sharp corner.
      */
     val toAkropolis: DrivePlan = Kaunas.toAkropolis.let { r ->
-        val savanoriuCity = r.segmentStartM(Kaunas.savanoriuCity)
-        val savanoriuFast = r.segmentStartM(Kaunas.savanoriuFast)
-        val jonavos = r.segmentStartM(Kaunas.jonavos)
-        val mindaugo = r.segmentStartM(Kaunas.mindaugo)
+        val savanoriu = r.segmentStartM(Kaunas.SAVANORIU)
+        val petrausko = r.segmentStartM(Kaunas.PETRAUSKO)
+        val vytauto = r.segmentStartM(Kaunas.VYTAUTO)
         DrivePlan(
             route = r,
             incidents = listOf(
-                Incident.SuddenBrake(atM = savanoriuCity + 0.9 * KM, toKmh = 15.0),
-                Incident.CoverageGap(fromM = savanoriuCity + 1.0 * KM, toM = savanoriuCity + 1.45 * KM),
-                Incident.TrafficLight(atM = savanoriuFast + 0.6 * KM, waitS = 25, aggressiveLaunch = true),
-                Incident.GnssOutage(fromM = savanoriuFast + 0.9 * KM, toM = savanoriuFast + 1.4 * KM),
-                Incident.SpeedingStretch(fromM = jonavos + 0.08 * KM, toM = jonavos + 0.65 * KM, targetKmh = 68.0),
-                Incident.CarelessCorner(atM = mindaugo, speedKmh = 38.0),
+                Incident.SuddenBrake(atM = savanoriu + 0.5 * KM, toKmh = 15.0),
+                Incident.CoverageGap(fromM = savanoriu + 0.6 * KM, toM = savanoriu + 1.05 * KM),
+                Incident.TrafficLight(atM = petrausko + 0.3 * KM, waitS = 25, aggressiveLaunch = true),
+                Incident.GnssOutage(fromM = petrausko + 0.6 * KM, toM = petrausko + 1.0 * KM),
+                Incident.SpeedingStretch(fromM = vytauto + 0.08 * KM, toM = vytauto + 0.55 * KM, targetKmh = 68.0),
+                // the right turn from Vytauto pr. into Karo Ligoninės g.
+                Incident.CarelessCorner(atM = r.segmentStartM(Kaunas.KARO_LIGONINES), speedKmh = 38.0),
             ),
         )
     }
 
     /** Back: a calm drive with one traffic light and no events. */
     val toZaliakalnis: DrivePlan = Kaunas.toZaliakalnis.let { r ->
-        DrivePlan(route = r, incidents = listOf(Incident.TrafficLight(atM = r.segmentStartM(Kaunas.savanoriuFast) + 1.1 * KM, waitS = 20)))
+        DrivePlan(route = r, incidents = listOf(Incident.TrafficLight(atM = r.segmentStartM(Kaunas.PETRAUSKO) + 0.6 * KM, waitS = 20)))
     }
 
     val day: List<DrivePlan> = listOf(toAkropolis, toZaliakalnis)
