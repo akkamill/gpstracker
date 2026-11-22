@@ -17,6 +17,7 @@ object SettingsPreferences {
     private val tripEndAfter = intPreferencesKey("trip_end_after_min")
     private val crashDetection = booleanPreferencesKey("crash_detection")
     private val emergencyContact = stringPreferencesKey("emergency_contact_name")
+    private val emergencyPhone = stringPreferencesKey("emergency_contact_phone")
     private val fuelType = stringPreferencesKey("vehicle_fuel_type")
     private val consumption = stringPreferencesKey("vehicle_consumption_l100")
     private val fuelPrice = stringPreferencesKey("vehicle_fuel_price")
@@ -27,6 +28,7 @@ object SettingsPreferences {
         tripEndAfterMinutes = prefs[tripEndAfter] ?: defaults.tripEndAfterMinutes,
         crashDetectionEnabled = prefs[crashDetection] ?: defaults.crashDetectionEnabled,
         emergencyContactName = prefs[emergencyContact] ?: defaults.emergencyContactName,
+        emergencyContactPhone = prefs[emergencyPhone] ?: defaults.emergencyContactPhone,
         vehicle = VehicleProfileUi(
             fuelType = prefs[fuelType].toEnum(defaults.vehicle.fuelType),
             consumptionL100 = prefs[consumption] ?: defaults.vehicle.consumptionL100,
@@ -40,6 +42,7 @@ object SettingsPreferences {
         prefs[tripEndAfter] = settings.tripEndAfterMinutes
         prefs[crashDetection] = settings.crashDetectionEnabled
         prefs[emergencyContact] = settings.emergencyContactName
+        prefs[emergencyPhone] = settings.emergencyContactPhone
         prefs[fuelType] = settings.vehicle.fuelType.name
         prefs[consumption] = settings.vehicle.consumptionL100
         prefs[fuelPrice] = settings.vehicle.fuelPricePerL

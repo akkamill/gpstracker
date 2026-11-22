@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -56,6 +58,9 @@ fun CrashAlertOverlay(
     onSendNow: () -> Unit,
     modifier: Modifier = Modifier,
     contactName: String = "",
+    contactPhone: String = "",
+    onCall: () -> Unit = {},
+    onText: () -> Unit = {},
 ) {
     if (!state.visible) return
     BackHandler(onBack = onImOk)
@@ -67,7 +72,11 @@ fun CrashAlertOverlay(
             .padding(24.dp),
         contentAlignment = Alignment.Center,
     ) {
-        if (state.sent) SentContent(onClose = onImOk) else CountingContent(state, contactName, onImOk, onSendNow)
+        if (state.sent) {
+            SentContent(contactName, contactPhone, onCall, onText, onClose = onImOk)
+        } else {
+            CountingContent(state, contactName, onImOk, onSendNow)
+        }
     }
 }
 
@@ -135,7 +144,8 @@ private fun CountingContent(
 }
 
 @Composable
-private fun SentContent(onClose: () -> Unit) {
+private fun SentContent(contactName: String, contactPhone: String, onCall: () -> Unit, onText: () -> Unit, onClose: () -> Unit) {
+    val who = contactName.ifBlank { stringResource(R.string.crash_default_contact) }
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -148,10 +158,48 @@ private fun SentContent(onClose: () -> Unit) {
             color = LineWhite,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
         )
-        Button(
+        if (contactPhone.isNotBlank()) {
+            // the phone and messages apps open with everything filled in; the driver confirms there
+            Button(
+                onClick = onCall,
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = LineWhite, contentColor = SignRed),
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Icon(Icons.Rounded.Call, contentDescription = null)
+                Text(
+                    stringResource(R.string.crash_call, who),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            OutlinedButton(
+                onClick = onText,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                border = BorderStroke(2.dp, LineWhite),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LineWhite),
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Icon(Icons.Rounded.Sms, contentDescription = null)
+                Text(
+                    stringResource(R.string.crash_text),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+        } else {
+            Text(
+                text = stringResource(R.string.crash_no_phone),
+                style = MaterialTheme.typography.bodyLarge,
+                color = LineWhite,
+                textAlign = TextAlign.Center,
+            )
+        }
+        OutlinedButton(
             onClick = onClose,
-            modifier = Modifier.fillMaxWidth().height(64.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LineWhite, contentColor = SignRed),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            border = BorderStroke(2.dp, LineWhite),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = LineWhite),
             shape = MaterialTheme.shapes.medium,
         ) { Text(stringResource(R.string.crash_close), style = MaterialTheme.typography.titleMedium) }
     }
@@ -166,5 +214,7 @@ private fun CrashCountingPreview() {
 @Preview(name = "Sent", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 private fun CrashSentPreview() {
-    DriveMetricsTheme { CrashAlertOverlay(PreviewStates.crashSent, onImOk = {}, onSendNow = {}) }
+    DriveMetricsTheme {
+        CrashAlertOverlay(PreviewStates.crashSent, onImOk = {}, onSendNow = {}, contactName = "Mom", contactPhone = "+37060012345")
+    }
 }

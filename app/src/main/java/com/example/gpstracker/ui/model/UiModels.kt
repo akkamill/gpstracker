@@ -159,6 +159,8 @@ data class SettingsUiState(
     val tripEndAfterMinutes: Int = 5,
     val crashDetectionEnabled: Boolean = true,
     val emergencyContactName: String = "",
+    /** As typed; optional. See PhoneNumbers for what counts as a number. */
+    val emergencyContactPhone: String = "",
     val vehicle: VehicleProfileUi = VehicleProfileUi(),
     val appVersion: String = "0.2.0",
 ) {

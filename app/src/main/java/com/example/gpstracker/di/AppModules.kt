@@ -146,7 +146,10 @@ val viewModelModule = module {
     viewModel { params -> TripDetailViewModel(params.get(), get()) }
     viewModel { InsightsViewModel(get(), get<SettingsRepository>().settings) }
     viewModel { SettingsViewModel(get(), get(), get(), BuildConfig.SERVER_URL) }
-    viewModel { CrashAlertViewModel(get<SettingsRepository>().settings) }
+    viewModel {
+        val drive = get<DriveRepository>()
+        CrashAlertViewModel(get<SettingsRepository>().settings, position = { drive.drive.value.position })
+    }
     viewModel { SupportChatViewModel(get()) }
 }
 

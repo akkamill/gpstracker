@@ -28,6 +28,7 @@ fun SettingsRoute(
         onTripEndAfterChange = viewModel::onTripEndAfterChange,
         onCrashDetectionChange = viewModel::onCrashDetectionChange,
         onEmergencyContactChange = viewModel::onEmergencyContactChange,
+        onEmergencyPhoneChange = viewModel::onEmergencyPhoneChange,
         onEditVehicle = onEditVehicle,
         onTriggerTestCrash = onTriggerTestCrash,
         onSignOut = {

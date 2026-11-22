@@ -35,8 +35,12 @@ class SettingsViewModel(
 
     fun onEmergencyContactChange(value: String) = store.update { it.copy(emergencyContactName = value) }
 
+    fun onEmergencyPhoneChange(value: String) = store.update { it.copy(emergencyContactPhone = value.take(MAX_PHONE_LENGTH)) }
+
     fun signOut() = auth.signOut()
 
     /** Debug-only presentation shortcut: moves the simulated car to its next drive. */
     fun skipToNextDrive() = demo.skipToNextDrive()
 }
+
+private const val MAX_PHONE_LENGTH = 24

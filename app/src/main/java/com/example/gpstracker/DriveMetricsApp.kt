@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -22,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gpstracker.ui.auth.SessionViewModel
 import com.example.gpstracker.ui.crash.CrashAlertOverlay
 import com.example.gpstracker.ui.crash.CrashAlertViewModel
+import com.example.gpstracker.ui.crash.EmergencyActions
 import com.example.gpstracker.ui.model.SessionState
 import com.example.gpstracker.ui.navigation.AuthGraph
 import com.example.gpstracker.ui.navigation.DriveBottomBar
@@ -82,6 +84,7 @@ private fun Splash() {
 private fun AppContent(startGraph: Any) {
     val navController = rememberNavController()
     val crashViewModel: CrashAlertViewModel = koinViewModel()
+    val context = LocalContext.current
     val crash by crashViewModel.state.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
@@ -110,6 +113,15 @@ private fun AppContent(startGraph: Any) {
             onImOk = crashViewModel::onImOk,
             onSendNow = crashViewModel::onSendNow,
             contactName = crashViewModel.contactName,
+            contactPhone = crashViewModel.contactPhone,
+            onCall = {
+                crashViewModel.onCallContact()
+                EmergencyActions.call(context, crashViewModel.contactPhone)
+            },
+            onText = {
+                crashViewModel.onTextContact()
+                EmergencyActions.text(context, crashViewModel.contactPhone, crashViewModel.alertMessage())
+            },
         )
     }
 }
