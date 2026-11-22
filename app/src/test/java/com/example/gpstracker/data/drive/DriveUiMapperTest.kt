@@ -66,6 +66,23 @@ class DriveUiMapperTest {
     }
 
     @Test
+    fun `the week card counts only trips of the last seven days`() {
+        val day = 86_400_000L
+        val now = 100 * day
+        fun saved(daysAgo: Double, score: Int) = SavedTrip(
+            "t$daysAgo",
+            now - (daysAgo * day).toLong(),
+            Trip(0, 1, 1.0, emptyList(), emptyList(), 50.0, 0, score, null, null, false),
+        )
+        val history = listOf(saved(0.5, 90), saved(3.0, 70), saved(6.9, 80), saved(7.5, 10), saved(20.0, 20))
+        val state = mapper.tripsState(emptyList(), null, mapper.weekScores(history, now))
+        assertEquals(3, state.weekTripCount)
+        assertEquals(80, state.weekAverageScore)
+        assertEquals(listOf(80, 70, 90), state.weekScores) // oldest first, for the sparkline
+        assertEquals(null, mapper.tripsState(emptyList(), null, emptyList()).weekAverageScore)
+    }
+
+    @Test
     fun `a saved trip's summary and record use the time it was saved`() {
         val savedAt = 1_700_000_000_000L
         val trip = Trip(

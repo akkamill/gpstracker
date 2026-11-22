@@ -79,6 +79,7 @@ class TelemetryDriveRepository(
     private var saved: List<SavedTrip> = emptyList()
     private var summaries: List<TripSummaryUi> = emptyList()
     private var summariesDay = 0L
+    private var weekScores: List<Int> = emptyList()
     private var lastTripRoute: List<GeoPointUi> = emptyList()
 
     private var latestEvent: DrivingEventUi? = null
@@ -89,7 +90,7 @@ class TelemetryDriveRepository(
     private val _drive = MutableStateFlow(DriveUiState())
     override val drive: StateFlow<DriveUiState> = _drive.asStateFlow()
 
-    private val _trips = MutableStateFlow(mapper.tripsState(emptyList(), null))
+    private val _trips = MutableStateFlow(mapper.tripsState(emptyList(), null, emptyList()))
     override val trips: StateFlow<TripsUiState> = _trips.asStateFlow()
 
     private val _records = MutableStateFlow<List<TripRecord>>(emptyList())
@@ -175,6 +176,7 @@ class TelemetryDriveRepository(
         val now = clock()
         summariesDay = mapper.dayNumber(now)
         summaries = saved.map { mapper.summary(it, now) }
+        weekScores = mapper.weekScores(saved, now)
         lastTripRoute = saved.firstOrNull { it.trip.route.isNotEmpty() }?.trip?.route?.map(mapper::point).orEmpty()
         _records.value = saved.asReversed().map(mapper::record)
     }
@@ -225,7 +227,7 @@ class TelemetryDriveRepository(
             position = point?.let { GeoPointUi(it.latitude, it.longitude) },
             lastTripRoute = lastTripRoute,
         )
-        _trips.value = mapper.tripsState(summaries, trip?.startMs)
+        _trips.value = mapper.tripsState(summaries, trip?.startMs, weekScores)
     }
 
     private fun averageKmh(km: Double, durationMs: Long): Int =

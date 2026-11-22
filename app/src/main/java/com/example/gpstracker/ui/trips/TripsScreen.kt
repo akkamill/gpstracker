@@ -158,13 +158,7 @@ private fun WeekCard(state: TripsUiState, modifier: Modifier = Modifier) {
                 Text(
                     text = stringResource(
                         R.string.trips_week_summary,
-                        pluralStringResource(
-                            R.plurals.trips_count,
-                            state.sections.sumOf {
-                                it.second.size
-                            },
-                            state.sections.sumOf { it.second.size },
-                        ),
+                        pluralStringResource(R.plurals.trips_count, state.weekTripCount, state.weekTripCount),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

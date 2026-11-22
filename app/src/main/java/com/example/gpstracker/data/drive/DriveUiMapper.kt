@@ -104,15 +104,20 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
         )
     }
 
-    fun tripsState(summaries: List<TripSummaryUi>, tripStartMs: Long?): TripsUiState {
-        val recent = summaries.take(WEEK_TRIPS)
-        return TripsUiState(
-            tripInProgressLabel = tripStartMs?.let { "Driving now, started ${timeLabel(it)}" },
-            weekAverageScore = recent.takeIf { it.isNotEmpty() }?.map { it.score }?.average()?.roundToInt(),
-            weekScores = recent.map { it.score }.reversed(),
-            sections = summaries.groupBy { it.dateLabel }.toList(),
-        )
-    }
+    /** Scores of the trips saved in the seven days before [nowMs], newest first. */
+    fun weekScores(saved: List<SavedTrip>, nowMs: Long): List<Int> =
+        saved.filter { nowMs - it.savedAtMs < WEEK_MS }.map { it.trip.score }
+
+    /**
+     * @param weekScores scores of this week's trips, newest first (see [weekScores])
+     */
+    fun tripsState(summaries: List<TripSummaryUi>, tripStartMs: Long?, weekScores: List<Int>): TripsUiState = TripsUiState(
+        tripInProgressLabel = tripStartMs?.let { "Driving now, started ${timeLabel(it)}" },
+        weekAverageScore = weekScores.takeIf { it.isNotEmpty() }?.average()?.roundToInt(),
+        weekScores = weekScores.reversed(),
+        weekTripCount = weekScores.size,
+        sections = summaries.groupBy { it.dateLabel }.toList(),
+    )
 
     /** Up to three tips, one per kind of mistake, naming the road where it happened. */
     fun tips(events: List<DrivingEvent>): List<String> {
@@ -195,7 +200,7 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
         const val MS_PER_DAY = 86_400_000L
         const val UNKNOWN_ROAD = "Unknown road"
         const val UNKNOWN_PLACE = "Unknown place"
-        const val WEEK_TRIPS = 7
+        const val WEEK_MS = 7 * 86_400_000L
         const val MAX_TIPS = 3
         const val G_MPS2 = 9.81
         const val MS_PER_SECOND = 1_000
