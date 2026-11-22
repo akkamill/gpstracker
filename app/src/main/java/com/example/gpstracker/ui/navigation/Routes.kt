@@ -42,3 +42,6 @@ data object SettingsDestination
 
 @Serializable
 data class TripDetailDestination(val tripId: String)
+
+@Serializable
+data object SupportDestination

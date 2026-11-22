@@ -1,47 +1,18 @@
 package com.example.gpstracker.server.accounts
 
 import com.example.gpstracker.server.db.Database
-import com.zaxxer.hikari.HikariDataSource
+import com.example.gpstracker.server.db.TestPostgres
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
-import org.junit.BeforeClass
 import org.junit.Test
-import org.testcontainers.DockerClientFactory
-import org.testcontainers.postgresql.PostgreSQLContainer
 
-/**
- * Runs the real migrations and queries against a throwaway PostgreSQL in Docker. Skipped when
- * Docker is not running on this computer; it always runs on CI.
- */
+/** The real migrations and queries against PostgreSQL in Docker (skipped without Docker). */
 class PostgresAccountRepositoryTest {
-    companion object {
-        private var postgres: PostgreSQLContainer? = null
-        private lateinit var dataSource: HikariDataSource
-
-        @BeforeClass
-        @JvmStatic
-        fun start() {
-            assumeTrue("Docker is not running", runCatching { DockerClientFactory.instance().isDockerAvailable }.getOrDefault(false))
-            postgres = PostgreSQLContainer("postgres:17-alpine").also { it.start() }
-            dataSource = Database.connect(postgres!!.jdbcUrl, postgres!!.username, postgres!!.password)
-            assertEquals(1, Database.migrate(dataSource))
-        }
-
-        @AfterClass
-        @JvmStatic
-        fun stop() {
-            if (postgres == null) return
-            dataSource.close()
-            postgres?.stop()
-        }
-    }
-
+    private val dataSource by lazy { TestPostgres.dataSource() }
     private val repo by lazy { PostgresAccountRepository(dataSource) }
 
     private fun account(email: String) = Account(UUID.randomUUID(), email, "Ona", "hash", "salt")
@@ -63,8 +34,10 @@ class PostgresAccountRepositoryTest {
     }
 
     @Test
-    fun migrationsRunOnlyOnce() {
-        assertEquals(0, Database.migrate(dataSource))
+    fun everyMigrationRanOnceOnAFreshDatabase() {
         assertTrue(Database.isUp(dataSource))
+        val scripts = javaClass.classLoader.getResource("db/migration")!!.let { java.io.File(it.toURI()).list()!!.size }
+        assertEquals(scripts, TestPostgres.migrationsRun)
+        assertEquals(0, Database.migrate(dataSource))
     }
 }

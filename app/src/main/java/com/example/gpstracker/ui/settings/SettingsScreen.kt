@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.SupportAgent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -83,6 +84,7 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     onCreateAccount: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenSupport: () -> Unit = {},
     showDebugTools: Boolean = false,
     onSkipToNextDrive: () -> Unit = {},
 ) {
@@ -118,6 +120,7 @@ fun SettingsScreen(
             ScoringSection(state, onToleranceChange)
             TripsSection(state, onTripEndAfterChange)
             SafetySection(state, onCrashDetectionChange, onEmergencyContactChange, onTriggerTestCrash)
+            HelpSection(onOpenSupport)
             AboutSection(
                 state = state,
                 onShowEstimates = { showEstimates = true },
@@ -194,6 +197,40 @@ private fun AccountSection(state: SettingsUiState, onSignOutClick: () -> Unit, o
                 color = MaterialTheme.colorScheme.onSurface,
             )
             PrimaryButton(text = stringResource(R.string.welcome_create), onClick = onCreateAccount)
+        }
+    }
+}
+
+@Composable
+private fun HelpSection(onOpenSupport: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionTitle(R.string.settings_section_help)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable(onClick = onOpenSupport),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(Icons.Rounded.SupportAgent, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.settings_support),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    stringResource(R.string.settings_support_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

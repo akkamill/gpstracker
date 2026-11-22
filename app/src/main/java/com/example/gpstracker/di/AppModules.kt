@@ -18,6 +18,8 @@ import com.example.gpstracker.data.reports.RoadReportService
 import com.example.gpstracker.data.reports.StoredReportRepository
 import com.example.gpstracker.data.settings.DataStoreSettingsRepository
 import com.example.gpstracker.data.settings.SettingsRepository
+import com.example.gpstracker.data.support.SupportChatRepository
+import com.example.gpstracker.data.support.WebSocketChatTransport
 import com.example.gpstracker.data.telematics.DemoControls
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
@@ -35,6 +37,7 @@ import com.example.gpstracker.ui.crash.CrashAlertViewModel
 import com.example.gpstracker.ui.drive.DriveViewModel
 import com.example.gpstracker.ui.insights.InsightsViewModel
 import com.example.gpstracker.ui.settings.SettingsViewModel
+import com.example.gpstracker.ui.support.SupportChatViewModel
 import com.example.gpstracker.ui.tripdetail.TripDetailViewModel
 import com.example.gpstracker.ui.trips.TripsViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -79,8 +82,11 @@ val dataModule = module {
         val onError = CoroutineExceptionHandler { _, error -> tracer.error("background work failed", error) }
         CoroutineScope(SupervisorJob() + Dispatchers.Default + onError)
     }
-    single { ApiClient(ApiClient.httpClient(), BuildConfig.SERVER_URL) }
-    single<AuthRepository> { RemoteAuthRepository(get(), get(), get(AppScope)) }
+    single { ApiClient.httpClient() }
+    single { ApiClient(get(), BuildConfig.SERVER_URL) }
+    single { RemoteAuthRepository(get(), get(), get(AppScope)) }
+    single<AuthRepository> { get<RemoteAuthRepository>() }
+    single { SupportChatRepository(WebSocketChatTransport(get(), BuildConfig.SERVER_URL), get<RemoteAuthRepository>(), get(AppScope)) }
 
     single { SimulatedTelemetrySource(SimulatedCar(startMs = System.currentTimeMillis())) }
     single<TelemetrySource> { get<SimulatedTelemetrySource>() }
@@ -113,6 +119,7 @@ val viewModelModule = module {
     viewModel { InsightsViewModel(get(), get<SettingsRepository>().settings) }
     viewModel { SettingsViewModel(get(), get(), get()) }
     viewModel { CrashAlertViewModel(get<SettingsRepository>().settings) }
+    viewModel { SupportChatViewModel(get()) }
 }
 
 val appModules = listOf(storageModule, dataModule, viewModelModule)

@@ -11,6 +11,8 @@ import com.example.gpstracker.server.accounts.InMemoryAccountRepository
 import com.example.gpstracker.server.auth.AuthService
 import com.example.gpstracker.server.auth.DemoAccount
 import com.example.gpstracker.server.auth.Tokens
+import com.example.gpstracker.server.support.InMemorySupportRepository
+import com.example.gpstracker.server.support.SupportHub
 import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.client.HttpClient
@@ -57,6 +59,8 @@ class ServerApiTest {
                     auth = AuthService(InMemoryAccountRepository(), tokens, PasswordHasher(iterations = 2)),
                     tokens = tokens,
                     databaseUp = { databaseUp },
+                    support = SupportHub(InMemorySupportRepository()),
+                    agentKey = null,
                 ),
             )
         }

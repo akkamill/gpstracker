@@ -74,6 +74,7 @@ ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-conte
 ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages" }
 ktor-server-auth = { group = "io.ktor", name = "ktor-server-auth" }
 ktor-server-auth-jwt = { group = "io.ktor", name = "ktor-server-auth-jwt" }
+ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json" }
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation" }
