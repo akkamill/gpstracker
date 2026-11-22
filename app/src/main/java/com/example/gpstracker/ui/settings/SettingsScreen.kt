@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.SupportAgent
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,6 +82,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onOpenSupport: () -> Unit = {},
     onEmergencyPhoneChange: (String) -> Unit = {},
+    alertsAllowed: Boolean = true,
+    onAllowAlerts: () -> Unit = {},
     showDebugTools: Boolean = false,
     onSkipToNextDrive: () -> Unit = {},
 ) {
@@ -115,7 +118,15 @@ fun SettingsScreen(
             CarDataSection(state)
             ScoringSection(state, onToleranceChange)
             TripsSection(state, onTripEndAfterChange)
-            SafetySection(state, onCrashDetectionChange, onEmergencyContactChange, onEmergencyPhoneChange, onTriggerTestCrash)
+            SafetySection(
+                state = state,
+                onCrashDetectionChange = onCrashDetectionChange,
+                onEmergencyContactChange = onEmergencyContactChange,
+                onEmergencyPhoneChange = onEmergencyPhoneChange,
+                alertsAllowed = alertsAllowed,
+                onAllowAlerts = onAllowAlerts,
+                onTriggerTestCrash = onTriggerTestCrash,
+            )
             HelpSection(onOpenSupport)
             AboutSection(
                 state = state,
@@ -372,6 +383,8 @@ private fun SafetySection(
     onCrashDetectionChange: (Boolean) -> Unit,
     onEmergencyContactChange: (String) -> Unit,
     onEmergencyPhoneChange: (String) -> Unit,
+    alertsAllowed: Boolean,
+    onAllowAlerts: () -> Unit,
     onTriggerTestCrash: () -> Unit,
 ) {
     val phoneInvalid = !PhoneNumbers.isAcceptable(state.emergencyContactPhone)
@@ -415,6 +428,22 @@ private fun SafetySection(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth(),
         )
+        if (state.crashDetectionEnabled && PhoneNumbers.normalize(state.emergencyContactPhone) != null) {
+            if (alertsAllowed) {
+                Text(
+                    stringResource(R.string.settings_alert_permission_granted),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    stringResource(R.string.settings_alert_permission),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = DriveColors.warning,
+                )
+                Button(onClick = onAllowAlerts) { Text(stringResource(R.string.settings_alert_permission_action)) }
+            }
+        }
         TextButton(onClick = onTriggerTestCrash) {
             Text(stringResource(R.string.settings_test_crash))
         }

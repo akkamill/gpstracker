@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
 import com.example.gpstracker.data.fake.PreviewStates
+import com.example.gpstracker.ui.model.AlertOutcome
 import com.example.gpstracker.ui.model.CrashAlertUiState
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 import com.example.gpstracker.ui.theme.LineWhite
@@ -73,7 +75,7 @@ fun CrashAlertOverlay(
         contentAlignment = Alignment.Center,
     ) {
         if (state.sent) {
-            SentContent(contactName, contactPhone, onCall, onText, onClose = onImOk)
+            SentContent(state, contactName, contactPhone, onCall, onText, onClose = onImOk)
         } else {
             CountingContent(state, contactName, onImOk, onSendNow)
         }
@@ -143,57 +145,76 @@ private fun CountingContent(
     }
 }
 
+/** After the countdown: what was done, and buttons to call or text by hand when it was not. */
 @Composable
-private fun SentContent(contactName: String, contactPhone: String, onCall: () -> Unit, onText: () -> Unit, onClose: () -> Unit) {
+private fun SentContent(
+    state: CrashAlertUiState,
+    contactName: String,
+    contactPhone: String,
+    onCall: () -> Unit,
+    onText: () -> Unit,
+    onClose: () -> Unit,
+) {
     val who = contactName.ifBlank { stringResource(R.string.crash_default_contact) }
+    val detail = when (state.outcome) {
+        AlertOutcome.TextedAndCalled -> stringResource(R.string.crash_outcome_texted_called, who)
+        AlertOutcome.TextedOnly -> stringResource(R.string.crash_outcome_texted, who)
+        AlertOutcome.CalledOnly -> stringResource(R.string.crash_outcome_called, who)
+        AlertOutcome.NotAllowed -> stringResource(R.string.crash_outcome_not_allowed, who)
+        AlertOutcome.Failed -> stringResource(R.string.crash_outcome_failed, who)
+        AlertOutcome.NoNumber, null -> stringResource(R.string.crash_no_phone)
+    }
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Icon(Icons.Rounded.Check, contentDescription = null, tint = LineWhite, modifier = Modifier.size(96.dp))
+        Icon(
+            if (state.reached) Icons.Rounded.Check else Icons.Rounded.ErrorOutline,
+            contentDescription = null,
+            tint = LineWhite,
+            modifier = Modifier.size(96.dp),
+        )
         Text(
-            text = stringResource(R.string.crash_sent),
+            text = stringResource(if (state.reached) R.string.crash_sent else R.string.crash_not_sent),
             style = MaterialTheme.typography.headlineSmall,
             color = LineWhite,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
         )
-        if (contactPhone.isNotBlank()) {
-            // the phone and messages apps open with everything filled in; the driver confirms there
-            Button(
-                onClick = onCall,
-                modifier = Modifier.fillMaxWidth().height(64.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LineWhite, contentColor = SignRed),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Icon(Icons.Rounded.Call, contentDescription = null)
-                Text(
-                    stringResource(R.string.crash_call, who),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+        Text(text = detail, style = MaterialTheme.typography.bodyLarge, color = LineWhite, textAlign = TextAlign.Center)
+        // whatever did not happen by itself can still be done by hand
+        if (contactPhone.isNotBlank() && state.outcome != AlertOutcome.TextedAndCalled) {
+            if (state.outcome != AlertOutcome.CalledOnly) {
+                Button(
+                    onClick = onCall,
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LineWhite, contentColor = SignRed),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Icon(Icons.Rounded.Call, contentDescription = null)
+                    Text(
+                        stringResource(R.string.crash_call, who),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
-            OutlinedButton(
-                onClick = onText,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                border = BorderStroke(2.dp, LineWhite),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = LineWhite),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Icon(Icons.Rounded.Sms, contentDescription = null)
-                Text(
-                    stringResource(R.string.crash_text),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+            if (state.outcome != AlertOutcome.TextedOnly) {
+                OutlinedButton(
+                    onClick = onText,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    border = BorderStroke(2.dp, LineWhite),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LineWhite),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Icon(Icons.Rounded.Sms, contentDescription = null)
+                    Text(
+                        stringResource(R.string.crash_text),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
-        } else {
-            Text(
-                text = stringResource(R.string.crash_no_phone),
-                style = MaterialTheme.typography.bodyLarge,
-                color = LineWhite,
-                textAlign = TextAlign.Center,
-            )
         }
         OutlinedButton(
             onClick = onClose,
