@@ -41,8 +41,8 @@ class DriverTest {
         assertTrue("harsh acceleration", motions.maxOf { it.accelMps2 } >= 3.5)
         assertTrue("sharp corner", motions.maxOf { abs(it.lateralMps2) } >= 5.0)
         // speeding: about 68 km/h on a 50 km/h street
-        val jonavos = motions.filter { Kaunas.toAkropolis.segmentAt(it.distanceM).name == "Jonavos g." }
-        assertTrue(jonavos.maxOf { it.kmh } in 64.0..70.0)
+        val vytauto = motions.filter { Kaunas.toAkropolis.segmentAt(it.distanceM).name == Kaunas.VYTAUTO }
+        assertTrue(vytauto.maxOf { it.kmh } in 64.0..70.0)
         // the red light: standing for its whole wait
         assertTrue(longestStop(motions) >= 25)
     }

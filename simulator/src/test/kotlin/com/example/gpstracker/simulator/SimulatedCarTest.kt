@@ -66,7 +66,7 @@ class SimulatedCarTest {
         val ignitionEvents = records.filter { it.eventIoId == AvlIo.IGNITION }.map { it[AvlIo.IGNITION] }
         assertEquals(listOf(1L, 0L, 1L, 0L), ignitionEvents)
         val km = (records.last()[AvlIo.TOTAL_ODOMETER]!! - records.first()[AvlIo.TOTAL_ODOMETER]!!) / 1000.0
-        assertEquals(2 * Kaunas.toAkropolis.lengthM / 1000, km, 0.05)
+        assertEquals((Kaunas.toAkropolis.lengthM + Kaunas.toZaliakalnis.lengthM) / 1000, km, 0.05)
         assertEquals(0, car.planIndex)
     }
 

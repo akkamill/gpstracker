@@ -106,7 +106,7 @@ class TelemetryDriveRepositoryTest {
         assertEquals(setOf(EventType.HarshBraking, EventType.HarshAcceleration, EventType.Speeding, EventType.SharpCorner), seen)
         assertTrue(states.any { it.latestEvent != null })
         assertTrue(states.any { it.isOverLimit && it.speedLimitKmh == 50 })
-        assertTrue(states.any { it.speedLimitKmh == 70 })
+        assertTrue(states.any { it.speedLimitKmh == 40 })
         assertTrue(states.any { it.gps == GpsStatus.Lost && it.isTripInProgress })
         assertTrue(states.any { it.connection == ConnectionStatus.Reconnecting && it.isTripInProgress })
         assertTrue(states.all { it.score in 0..100 })

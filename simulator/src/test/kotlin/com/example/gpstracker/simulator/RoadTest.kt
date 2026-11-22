@@ -26,18 +26,26 @@ class RoadTest {
     }
 
     @Test
-    fun `demo route is about five kilometres and starts and ends at its places`() {
-        assertTrue(route.lengthM in 4_500.0..5_500.0)
+    fun `demo route is between four and five kilometres and starts and ends at its places`() {
+        assertTrue(route.lengthM in 4_000.0..5_000.0)
         assertEquals(0.0, Geo.distanceM(route.positionAt(0.0), route.from.point), 1e-6)
         assertEquals(0.0, Geo.distanceM(route.positionAt(route.lengthM), route.to.point), 1e-6)
     }
 
     @Test
-    fun `route has one sharp right turn onto Karaliaus Mindaugo pr`() {
-        val sharp = route.corners.filter { it.isSharp }
-        val right = sharp.single { it.turnDeg > 0 }
-        assertTrue(right.turnDeg in 60.0..100.0)
-        assertEquals(route.segmentStartM(3), right.atM, 1.0)
+    fun `the turns between streets are where the streets meet`() {
+        // left into K. Petrausko g., right into Parodos g., right into Karo Ligoninės g.
+        listOf(Kaunas.PETRAUSKO to -1, Kaunas.PARODOS to 1, Kaunas.KARO_LIGONINES to 1).forEach { (street, side) ->
+            val turn = route.corners.single { abs(it.atM - route.segmentStartM(street)) < 1.0 }
+            assertTrue("$street: ${turn.turnDeg}", turn.isSharp && turn.turnDeg * side in 50.0..110.0)
+        }
+    }
+
+    @Test
+    fun `bends never overlap, however short the pieces of a curved street are`() {
+        listOf(route, Kaunas.toZaliakalnis).forEach { r ->
+            assertTrue(r.corners.zipWithNext().all { (a, b) -> a.endM <= b.startM + 1e-6 })
+        }
     }
 
     @Test
@@ -51,7 +59,7 @@ class RoadTest {
     }
 
     @Test
-    fun `reversed route has the same length and swapped ends`() {
+    fun `a reversed route has the same length and swapped ends`() {
         val back = route.reversed()
         assertEquals(route.lengthM, back.lengthM, 1e-6)
         assertEquals(route.to, back.from)
@@ -60,21 +68,25 @@ class RoadTest {
 
     @Test
     fun `segment lookup follows the speed limits along the route`() {
-        val limits = listOf(0.15, 0.45, 0.72, 0.88, 0.97).map { route.segmentAt(route.lengthM * it).speedLimitKmh }
-        assertEquals(listOf(50, 70, 50, 50, 30), limits)
+        val streets = route.segments.map { it.name }
+        assertEquals(listOf(Kaunas.SAVANORIU, Kaunas.PETRAUSKO, Kaunas.PARODOS, Kaunas.VYTAUTO), streets.take(4))
+        val limits = listOf(0.15, 0.45, 0.62, 0.75, 0.99).map { route.segmentAt(route.lengthM * it).speedLimitKmh }
+        assertEquals(listOf(50, 50, 40, 50, 20), limits)
     }
 
     @Test
     fun `road map finds the road under a point and nothing far away`() {
-        val onFastStretch = route.positionAt(route.segmentStartM(1) + 500)
-        assertEquals(70, Kaunas.map.roadAt(Geo.offset(onFastStretch, 8.0, 0.0))?.speedLimitKmh)
-        assertNull(Kaunas.map.roadAt(Geo.offset(onFastStretch, 500.0, 0.0)))
+        val onParodos = route.positionAt(route.segmentStartM(Kaunas.PARODOS) + 250)
+        assertEquals(40, Kaunas.map.roadAt(Geo.offset(onParodos, 8.0, 0.0))?.speedLimitKmh)
+        assertNull(Kaunas.map.roadAt(Geo.offset(onParodos, 500.0, 0.0)))
     }
 
     @Test
     fun `places name the ends of the route`() {
         assertEquals("Akropolis", Kaunas.map.placeNear(route.to.point)?.name)
         assertEquals("Žaliakalnis", Kaunas.map.placeNear(Geo.offset(route.from.point, 100.0, 100.0))?.name)
-        assertTrue(abs(route.lengthM - Kaunas.toZaliakalnis.lengthM) < 1e-6)
+        // the way back ends where the way there starts, so the demo loop never jumps
+        assertEquals(route.from, Kaunas.toZaliakalnis.to)
+        assertEquals(route.to, Kaunas.toZaliakalnis.from)
     }
 }
