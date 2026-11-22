@@ -25,6 +25,9 @@ class StoredReportRepository(
 ) : ReportRepository by memory {
     private val tracer = Tracing.tracer("app")
 
+    /** See [InMemoryReportRepository.applyServer]; the database follows. */
+    fun applyServer(server: List<RoadReport>, keep: Set<String>) = memory.applyServer(server, keep)
+
     init {
         scope.launch {
             val saved = dao.all().map { it.toModel() }
