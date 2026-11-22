@@ -9,6 +9,7 @@ import com.example.gpstracker.model.api.SignInRequest
 import com.example.gpstracker.model.api.SignUpRequest
 import com.example.gpstracker.server.accounts.InMemoryAccountRepository
 import com.example.gpstracker.server.auth.AuthService
+import com.example.gpstracker.server.auth.DemoAccount
 import com.example.gpstracker.server.auth.Tokens
 import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.Tracing
@@ -29,6 +30,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -109,7 +111,14 @@ class ServerApiTest {
 
     @Test
     fun `bad input is refused with a reason`() = api { client ->
-        listOf(ona.copy(name = " "), ona.copy(email = "ona@"), ona.copy(password = "short")).forEach {
+        val badInput = listOf(
+            ona.copy(name = " "),
+            ona.copy(email = "ona@"),
+            ona.copy(password = "short1"),
+            ona.copy(password = "only-letters"),
+            ona.copy(password = "12345678"),
+        )
+        badInput.forEach {
             val refused = client.postJson("/api/auth/sign-up", it)
             assertEquals(HttpStatusCode.BadRequest, refused.status)
             assertEquals(ApiError.INVALID_INPUT, refused.body<ApiError>().code)
@@ -119,6 +128,14 @@ class ServerApiTest {
             setBody("{not json")
         }
         assertEquals(HttpStatusCode.BadRequest, unreadable.status)
+    }
+
+    @Test
+    fun `the demo account is created once and can sign in`() = testApplication {
+        val auth = AuthService(InMemoryAccountRepository(), tokens, PasswordHasher(iterations = 2))
+        assertTrue(auth.addDemoAccount())
+        assertFalse(auth.addDemoAccount())
+        assertEquals("Demo Driver", auth.signIn(SignInRequest(DemoAccount.EMAIL, DemoAccount.PASSWORD)).account.name)
     }
 
     @Test

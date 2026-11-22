@@ -9,6 +9,7 @@ import com.example.gpstracker.tracing.Tracing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 
 /** Starts the server: settings from the environment, database migrations, then HTTP. */
 fun main() {
@@ -20,11 +21,9 @@ fun main() {
     tracer.info("database ready", "migrationsRun" to migrations)
 
     val tokens = Tokens(config.jwtSecret, TimeUnit.DAYS.toMillis(config.tokenLifetimeDays))
-    val deps = ServerDependencies(
-        auth = AuthService(PostgresAccountRepository(dataSource), tokens),
-        tokens = tokens,
-        databaseUp = { Database.isUp(dataSource) },
-    )
+    val auth = AuthService(PostgresAccountRepository(dataSource), tokens)
+    if (config.seedDemoAccount) runBlocking { auth.addDemoAccount() }
+    val deps = ServerDependencies(auth = auth, tokens = tokens, databaseUp = { Database.isUp(dataSource) })
     tracer.info("server starting", "port" to config.port)
     embeddedServer(Netty, port = config.port) { driveMetrics(deps) }.start(wait = true)
 }

@@ -12,6 +12,8 @@ data class ServerConfig(
     /** Signs the login tokens. Anyone who knows it can make tokens, so it is never committed for real use. */
     val jwtSecret: String,
     val tokenLifetimeDays: Long,
+    /** Creates the demo account at start, for local development and demos. */
+    val seedDemoAccount: Boolean = false,
 ) {
     override fun toString() = "ServerConfig(port=$port, databaseUrl=$databaseUrl, databaseUser=$databaseUser, secrets=***)"
 
@@ -31,6 +33,7 @@ data class ServerConfig(
                 databasePassword = required("DATABASE_PASSWORD"),
                 jwtSecret = secret,
                 tokenLifetimeDays = env["TOKEN_LIFETIME_DAYS"]?.toLongOrNull() ?: DEFAULT_TOKEN_DAYS,
+                seedDemoAccount = env["SEED_DEMO_ACCOUNT"].toBoolean(),
             )
         }
     }

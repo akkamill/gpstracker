@@ -44,6 +44,13 @@ class Tokens(secret: String, private val lifetimeMs: Long, private val clock: ()
     }
 }
 
+/** The account shown in the README for trying the app; created when SEED_DEMO_ACCOUNT=true. */
+object DemoAccount {
+    const val NAME = "Demo Driver"
+    const val EMAIL = "demo@drivemetrics.app"
+    const val PASSWORD = "demo1234"
+}
+
 /**
  * Sign-up and sign-in. Emails are compared in lower case. Logs never contain emails, names,
  * passwords or tokens.
@@ -60,17 +67,23 @@ class AuthService(
         val email = normalize(request.email)
         validate(name.length in 1..MAX_NAME, "Enter your name (at most $MAX_NAME characters).")
         validate(EMAIL.matches(email) && email.length <= MAX_EMAIL, "Enter a valid email address.")
-        validate(request.password.length in MIN_PASSWORD..MAX_PASSWORD, "Use at least $MIN_PASSWORD characters for the password.")
+        validate(isStrong(request.password), "Use at least $MIN_PASSWORD characters with a letter and a number.")
 
-        val salt = hasher.newSalt()
-        val hash = withContext(Dispatchers.Default) { hasher.hash(request.password, salt) }
-        val account = Account(UUID.randomUUID(), email, name, hash, salt)
+        val account = newAccount(name, email, request.password)
         if (!accounts.insert(account)) {
             tracer.warn("sign up refused: email already registered")
             throw ApiException(HttpStatusCode.Conflict, ApiError(ApiError.EMAIL_TAKEN, "An account with this email already exists."))
         }
         tracer.info("account created", "account" to account.id)
         return response(account)
+    }
+
+    /** Creates the demo account unless it exists. Returns true when it was created. */
+    suspend fun addDemoAccount(): Boolean {
+        if (accounts.findByEmail(DemoAccount.EMAIL) != null) return false
+        val created = accounts.insert(newAccount(DemoAccount.NAME, DemoAccount.EMAIL, DemoAccount.PASSWORD))
+        if (created) tracer.info("demo account created")
+        return created
     }
 
     suspend fun signIn(request: SignInRequest): AuthResponse {
@@ -94,6 +107,16 @@ class AuthService(
         val (token, expiresAt) = tokens.issue(account.id)
         return AuthResponse(token, expiresAt, account.info())
     }
+
+    private suspend fun newAccount(name: String, email: String, password: String): Account {
+        val salt = hasher.newSalt()
+        val hash = withContext(Dispatchers.Default) { hasher.hash(password, salt) }
+        return Account(UUID.randomUUID(), email, name, hash, salt)
+    }
+
+    /** The same rule the app checks before sending: long enough, with a letter and a number. */
+    private fun isStrong(password: String) =
+        password.length in MIN_PASSWORD..MAX_PASSWORD && password.any { it.isLetter() } && password.any { it.isDigit() }
 
     private fun Account.info() = AccountInfo(id.toString(), name, email)
 

@@ -1,6 +1,7 @@
 package com.example.gpstracker.server
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -18,6 +19,8 @@ class ServerConfigTest {
         val config = ServerConfig.fromEnvironment(env)
         assertEquals(8080, config.port)
         assertEquals(30L, config.tokenLifetimeDays)
+        assertFalse(config.seedDemoAccount)
+        assertTrue(ServerConfig.fromEnvironment(env + ("SEED_DEMO_ACCOUNT" to "true")).seedDemoAccount)
         assertEquals(9000, ServerConfig.fromEnvironment(env + ("PORT" to "9000")).port)
     }
 
