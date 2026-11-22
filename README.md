@@ -153,7 +153,19 @@ docker compose logs -f server      # follow the server's log
 docker compose down                # stop; the data stays in the "db-data" volume
 ```
 
-The emulator reaches your computer at `10.0.2.2`, so the app talks to `http://10.0.2.2:8080`.
+The app talks to `http://localhost:8080`. Once per emulator start (or after plugging in a phone),
+connect the device's `localhost` to your computer:
+
+```bash
+adb reverse tcp:8080 tcp:8080
+```
+
+This works the same for the emulator and a USB phone. (The emulator's usual address for the
+computer, `10.0.2.2`, is a local network address, and Android 17 blocks apps from those without
+an extra permission.) To use another server, build with `./gradlew installDebug -PserverUrl=https://...`.
+
+Sign in with the demo account `demo@drivemetrics.app` / `demo1234` (the server creates it),
+create an account, or choose **Try the demo**, which works without the server.
 The passwords in `compose.yaml` are for local development only; to use your own, copy
 `.env.example` to `.env` and fill it in (`.env` is not committed). Tables are created and
 updated by the numbered scripts in `server/src/main/resources/db/migration` when the server starts.
