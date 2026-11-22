@@ -16,6 +16,7 @@ import com.example.gpstracker.ui.drive.DriveRoute
 import com.example.gpstracker.ui.insights.InsightsRoute
 import com.example.gpstracker.ui.map.MapRoute
 import com.example.gpstracker.ui.settings.SettingsRoute
+import com.example.gpstracker.ui.support.SupportChatRoute
 import com.example.gpstracker.ui.tripdetail.TripDetailRoute
 import com.example.gpstracker.ui.trips.TripsRoute
 import org.koin.compose.viewmodel.koinViewModel
@@ -126,6 +127,20 @@ fun DriveMetricsNavHost(
                     onCreateAccount = {
                         sessionViewModel.signOut()
                         leaveToAuth(SignUpDestination)
+                    },
+                    onOpenSupport = { navController.navigate(SupportDestination) },
+                )
+            }
+            composable<SupportDestination> {
+                SupportChatRoute(
+                    onBack = { navController.popBackStack() },
+                    onCreateAccount = {
+                        sessionViewModel.signOut()
+                        leaveToAuth(SignUpDestination)
+                    },
+                    onSignIn = {
+                        sessionViewModel.signOut()
+                        leaveToAuth(SignInDestination)
                     },
                 )
             }

@@ -14,6 +14,7 @@ fun SettingsRoute(
     onEditVehicle: () -> Unit,
     onSignedOut: () -> Unit,
     onCreateAccount: () -> Unit,
+    onOpenSupport: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -36,6 +37,7 @@ fun SettingsRoute(
             onSignedOut()
         },
         onCreateAccount = onCreateAccount,
+        onOpenSupport = onOpenSupport,
         showDebugTools = isDebuggable,
         onSkipToNextDrive = viewModel::skipToNextDrive,
     )

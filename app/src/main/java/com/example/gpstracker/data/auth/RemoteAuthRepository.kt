@@ -2,6 +2,7 @@ package com.example.gpstracker.data.auth
 
 import com.example.gpstracker.data.remote.ApiClient
 import com.example.gpstracker.data.remote.ApiResult
+import com.example.gpstracker.data.support.TokenProvider
 import com.example.gpstracker.model.api.AuthResponse
 import com.example.gpstracker.model.api.SignInRequest
 import com.example.gpstracker.model.api.SignUpRequest
@@ -28,7 +29,7 @@ class RemoteAuthRepository(
     private val sessions: SessionStore,
     private val scope: CoroutineScope,
     private val clock: () -> Long = System::currentTimeMillis,
-) : AuthRepository {
+) : AuthRepository, TokenProvider {
     private val tracer = Tracing.tracer("auth")
 
     private val _session = MutableStateFlow<SessionState>(SessionState.Loading)
@@ -38,6 +39,8 @@ class RemoteAuthRepository(
     @Volatile
     var token: String? = null
         private set
+
+    override fun currentToken(): String? = token
 
     init {
         scope.launch {

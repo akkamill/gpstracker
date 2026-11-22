@@ -12,6 +12,7 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -78,6 +79,7 @@ class ApiClient(private val http: HttpClient, baseUrl: String) {
     companion object {
         private const val CONNECT_TIMEOUT_MS = 5_000L
         private const val REQUEST_TIMEOUT_MS = 15_000L
+        private const val PING_INTERVAL_MS = 20_000L
 
         /** The HTTP client the app uses; tests pass a mock [engine] instead. */
         fun httpClient(engine: HttpClientEngine = OkHttp.create()): HttpClient = HttpClient(engine) {
@@ -86,6 +88,8 @@ class ApiClient(private val http: HttpClient, baseUrl: String) {
                 connectTimeoutMillis = CONNECT_TIMEOUT_MS
                 requestTimeoutMillis = REQUEST_TIMEOUT_MS
             }
+            // the support chat; pings keep the connection alive and notice when it is gone
+            install(WebSockets) { pingIntervalMillis = PING_INTERVAL_MS }
         }
     }
 }
