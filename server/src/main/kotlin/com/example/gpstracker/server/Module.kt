@@ -6,6 +6,8 @@ import com.example.gpstracker.model.api.SignInRequest
 import com.example.gpstracker.model.api.SignUpRequest
 import com.example.gpstracker.server.auth.AuthService
 import com.example.gpstracker.server.auth.Tokens
+import com.example.gpstracker.server.reports.ReportService
+import com.example.gpstracker.server.reports.roadReports
 import com.example.gpstracker.server.support.SupportHub
 import com.example.gpstracker.server.support.agentChat
 import com.example.gpstracker.server.support.driverChat
@@ -45,6 +47,7 @@ class ServerDependencies(
     val tokens: Tokens,
     val databaseUp: () -> Boolean,
     val support: SupportHub,
+    val reports: ReportService,
     /** The support team's key for the chat page; null turns the page's chat off. */
     val agentKey: String?,
 )
@@ -58,6 +61,7 @@ class ServerDependencies(
  * - `GET  /api/me`              the signed-in account (needs "Authorization: Bearer <token>")
  * - `WS   /api/support/chat`    a driver's support chat (needs the token)
  * - `WS   /api/support/agent`   the support team's side of all chats (needs the team's key)
+ * - `/api/reports`              shared road reports (see ReportRoutes)
  * - `GET  /support`             the support team's web page
  */
 fun Application.driveMetrics(deps: ServerDependencies) {
@@ -110,6 +114,7 @@ fun Application.driveMetrics(deps: ServerDependencies) {
                 driverChat(deps.support)
             }
             agentChat(deps.support, deps.agentKey)
+            roadReports(deps.reports, TOKEN_AUTH)
         }
         staticResources("/support", "support")
     }

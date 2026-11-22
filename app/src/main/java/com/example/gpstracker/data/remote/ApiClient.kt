@@ -3,8 +3,12 @@ package com.example.gpstracker.data.remote
 import com.example.gpstracker.model.api.AccountInfo
 import com.example.gpstracker.model.api.ApiError
 import com.example.gpstracker.model.api.AuthResponse
+import com.example.gpstracker.model.api.NewReportRequest
 import com.example.gpstracker.model.api.SignInRequest
 import com.example.gpstracker.model.api.SignUpRequest
+import com.example.gpstracker.model.api.VoteRequest
+import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.model.reports.RoadReport
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -15,6 +19,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -55,6 +60,31 @@ class ApiClient(private val http: HttpClient, baseUrl: String) {
 
     suspend fun me(token: String): ApiResult<AccountInfo> = call {
         http.get("$base/api/me") { bearerAuth(token) }
+    }
+
+    /** Active road reports around [near] (all when null); [token] marks the driver's own ones. */
+    suspend fun reports(near: LatLon?, token: String?): ApiResult<List<RoadReport>> = call {
+        http.get("$base/api/reports") {
+            near?.let {
+                parameter("lat", it.latitude)
+                parameter("lon", it.longitude)
+            }
+            token?.let { bearerAuth(it) }
+        }
+    }
+
+    suspend fun shareReport(request: NewReportRequest, token: String): ApiResult<RoadReport> = call {
+        http.post("$base/api/reports") {
+            bearerAuth(token)
+            json(request)
+        }
+    }
+
+    suspend fun voteOnReport(id: String, stillThere: Boolean, token: String): ApiResult<RoadReport> = call {
+        http.post("$base/api/reports/$id/vote") {
+            bearerAuth(token)
+            json(VoteRequest(stillThere))
+        }
     }
 
     private inline fun <reified B : Any> io.ktor.client.request.HttpRequestBuilder.json(body: B) {

@@ -38,6 +38,15 @@ class InMemoryReportRepository(
     }
 
     /**
+     * Takes the server's list as the truth: reports it no longer sends are gone. Only [keep]
+     * stays besides, the reports made on this phone that the server does not have yet.
+     */
+    fun applyServer(server: List<RoadReport>, keep: Set<String>) {
+        _reports.update { current -> (server + current.filter { it.id in keep }).distinctBy { it.id }.sortedBy { it.createdAtMs } }
+        removeInactive()
+    }
+
+    /**
      * Adds reports loaded from storage. When two have the same id, the one already in memory
      * wins, then the one earlier in [saved].
      */

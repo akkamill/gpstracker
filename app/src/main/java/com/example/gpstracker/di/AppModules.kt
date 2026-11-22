@@ -15,6 +15,7 @@ import com.example.gpstracker.data.local.RoomTripHistory
 import com.example.gpstracker.data.remote.ApiClient
 import com.example.gpstracker.data.reports.ReportRepository
 import com.example.gpstracker.data.reports.RoadReportService
+import com.example.gpstracker.data.reports.SharedReportRepository
 import com.example.gpstracker.data.reports.StoredReportRepository
 import com.example.gpstracker.data.settings.DataStoreSettingsRepository
 import com.example.gpstracker.data.settings.SettingsRepository
@@ -26,6 +27,7 @@ import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.domain.trip.TripHistory
+import com.example.gpstracker.model.geo.LatLon
 import com.example.gpstracker.simulator.vehicle.CommunityReports
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.tracing.Tracing
@@ -92,8 +94,19 @@ val dataModule = module {
     single<TelemetrySource> { get<SimulatedTelemetrySource>() }
     single<DemoControls> { get<SimulatedTelemetrySource>() }
 
-    // seeded with reports from "other drivers" until the server shares real ones
-    single<ReportRepository> { StoredReportRepository(get(), get(AppScope), demo = CommunityReports.demo(System.currentTimeMillis())) }
+    // Shared through the server. The simulated "other drivers" reports are there from the start,
+    // so the demo also works without the server; the server sends the same ones (same ids).
+    single<ReportRepository> {
+        val koin = getKoin()
+        SharedReportRepository(
+            local = StoredReportRepository(get(), get(AppScope), demo = CommunityReports.demo(System.currentTimeMillis())),
+            api = get(),
+            tokens = get<RemoteAuthRepository>(),
+            scope = get(AppScope),
+            // read when syncing; the drive repository is created after this one
+            position = { koin.get<DriveRepository>().drive.value.position?.let { LatLon(it.lat, it.lon) } },
+        ).also { it.start() }
+    }
     single { RoadReportService(get()) }
 
     single<DriveRepository> {
