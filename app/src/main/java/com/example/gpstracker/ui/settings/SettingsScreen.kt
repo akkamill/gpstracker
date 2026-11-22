@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.SupportAgent
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,11 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
 import com.example.gpstracker.data.estimate.parseDecimal
 import com.example.gpstracker.data.fake.PreviewStates
+import com.example.gpstracker.data.settings.PhoneNumbers
 import com.example.gpstracker.ui.auth.components.PrimaryButton
 import com.example.gpstracker.ui.auth.initialsOf
 import com.example.gpstracker.ui.components.InfoBottomSheet
@@ -77,6 +81,9 @@ fun SettingsScreen(
     onCreateAccount: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenSupport: () -> Unit = {},
+    onEmergencyPhoneChange: (String) -> Unit = {},
+    alertsAllowed: Boolean = true,
+    onAllowAlerts: () -> Unit = {},
     showDebugTools: Boolean = false,
     onSkipToNextDrive: () -> Unit = {},
 ) {
@@ -111,7 +118,15 @@ fun SettingsScreen(
             CarDataSection(state)
             ScoringSection(state, onToleranceChange)
             TripsSection(state, onTripEndAfterChange)
-            SafetySection(state, onCrashDetectionChange, onEmergencyContactChange, onTriggerTestCrash)
+            SafetySection(
+                state = state,
+                onCrashDetectionChange = onCrashDetectionChange,
+                onEmergencyContactChange = onEmergencyContactChange,
+                onEmergencyPhoneChange = onEmergencyPhoneChange,
+                alertsAllowed = alertsAllowed,
+                onAllowAlerts = onAllowAlerts,
+                onTriggerTestCrash = onTriggerTestCrash,
+            )
             HelpSection(onOpenSupport)
             AboutSection(
                 state = state,
@@ -367,8 +382,12 @@ private fun SafetySection(
     state: SettingsUiState,
     onCrashDetectionChange: (Boolean) -> Unit,
     onEmergencyContactChange: (String) -> Unit,
+    onEmergencyPhoneChange: (String) -> Unit,
+    alertsAllowed: Boolean,
+    onAllowAlerts: () -> Unit,
     onTriggerTestCrash: () -> Unit,
 ) {
+    val phoneInvalid = !PhoneNumbers.isAcceptable(state.emergencyContactPhone)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle(R.string.settings_section_safety)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -395,6 +414,36 @@ private fun SafetySection(
             label = { Text(stringResource(R.string.settings_contact_label)) },
             modifier = Modifier.fillMaxWidth(),
         )
+        OutlinedTextField(
+            value = state.emergencyContactPhone,
+            onValueChange = onEmergencyPhoneChange,
+            enabled = state.crashDetectionEnabled,
+            singleLine = true,
+            isError = phoneInvalid,
+            shape = MaterialTheme.shapes.small,
+            label = { Text(stringResource(R.string.settings_contact_phone_label)) },
+            supportingText = {
+                Text(stringResource(if (phoneInvalid) R.string.settings_contact_phone_error else R.string.settings_contact_phone_hint))
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (state.crashDetectionEnabled && PhoneNumbers.normalize(state.emergencyContactPhone) != null) {
+            if (alertsAllowed) {
+                Text(
+                    stringResource(R.string.settings_alert_permission_granted),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    stringResource(R.string.settings_alert_permission),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = DriveColors.warning,
+                )
+                Button(onClick = onAllowAlerts) { Text(stringResource(R.string.settings_alert_permission_action)) }
+            }
+        }
         TextButton(onClick = onTriggerTestCrash) {
             Text(stringResource(R.string.settings_test_crash))
         }

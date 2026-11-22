@@ -9,6 +9,8 @@ import com.example.gpstracker.data.auth.RemoteAuthRepository
 import com.example.gpstracker.data.auth.SessionStore
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.drive.TelemetryDriveRepository
+import com.example.gpstracker.data.emergency.EmergencyNotifier
+import com.example.gpstracker.data.emergency.PhoneEmergencyNotifier
 import com.example.gpstracker.data.local.DriveMetricsDatabase
 import com.example.gpstracker.data.local.RoomTripHistory
 import com.example.gpstracker.data.remote.ApiClient
@@ -79,6 +81,7 @@ val storageModule = module {
     single<TripHistory> { get<RoomTripHistory>() }
     single<SettingsRepository> { DataStoreSettingsRepository(androidContext().settingsStore, get(AppScope)) }
     single<SessionStore> { DataStoreSessionStore(androidContext().sessionStore) }
+    single<EmergencyNotifier> { PhoneEmergencyNotifier(androidContext()) }
 }
 
 /** Accounts, the car's data and everything computed from it. */
@@ -146,7 +149,15 @@ val viewModelModule = module {
     viewModel { params -> TripDetailViewModel(params.get(), get()) }
     viewModel { InsightsViewModel(get(), get<SettingsRepository>().settings) }
     viewModel { SettingsViewModel(get(), get(), get(), BuildConfig.SERVER_URL) }
-    viewModel { CrashAlertViewModel(get<SettingsRepository>().settings) }
+    viewModel {
+        val drive = get<DriveRepository>()
+        CrashAlertViewModel(
+            settings = get<SettingsRepository>().settings,
+            position = { drive.drive.value.position },
+            notifier = get(),
+            crashes = drive.drive.map { it.latestEvent },
+        )
+    }
     viewModel { SupportChatViewModel(get()) }
 }
 

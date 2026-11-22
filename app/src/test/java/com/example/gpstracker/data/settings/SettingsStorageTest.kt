@@ -18,6 +18,7 @@ class SettingsStorageTest {
         tripEndAfterMinutes = 2,
         crashDetectionEnabled = false,
         emergencyContactName = "Mum",
+        emergencyContactPhone = "+370 600 12345",
         vehicle = VehicleProfileUi(FuelType.Diesel, "5.1", "1.62", "1500"),
     )
 

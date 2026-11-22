@@ -159,14 +159,37 @@ data class SettingsUiState(
     val tripEndAfterMinutes: Int = 5,
     val crashDetectionEnabled: Boolean = true,
     val emergencyContactName: String = "",
+    /** As typed; optional. See PhoneNumbers for what counts as a number. */
+    val emergencyContactPhone: String = "",
     val vehicle: VehicleProfileUi = VehicleProfileUi(),
     val appVersion: String = "0.2.0",
 ) {
     val isGuest: Boolean get() = accountName == null
 }
 
+/** What happened when the alert went out. */
+enum class AlertOutcome {
+    /** The text was sent and the call started. */
+    TextedAndCalled,
+    TextedOnly,
+    CalledOnly,
+
+    /** No phone number in Settings. */
+    NoNumber,
+
+    /** The driver has not allowed texts and calls. */
+    NotAllowed,
+
+    /** The phone could neither text nor call, for example a tablet. */
+    Failed,
+}
+
 data class CrashAlertUiState(
     val visible: Boolean = false,
     val secondsLeft: Int = 10,
     val sent: Boolean = false,
-)
+    val outcome: AlertOutcome? = null,
+) {
+    /** The contact was reached automatically, at least by text or by call. */
+    val reached: Boolean get() = outcome in setOf(AlertOutcome.TextedAndCalled, AlertOutcome.TextedOnly, AlertOutcome.CalledOnly)
+}
