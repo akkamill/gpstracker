@@ -9,24 +9,34 @@ driving score. It records trips automatically, shows where you lost points, esti
 money wasted by harsh driving, and compares you with a simulated benchmark driver.
 
 - **Drive**: live speed, speed limit, score and trip status. Read-only.
-- **Map**: the current route, or the last trip while parked.
-- **Trips**: history with scores, and trip details with events, fuel estimate and tips.
+- **Road reports**: one tap to report an accident, police, a hazard, a jam, a closed road or a
+  speed camera; warnings about reports ahead, shared with other drivers through the server.
+- **Map**: the current route with events and reports, or the last trip while parked.
+- **Trips**: history with scores, and trip details with events, fuel estimate and tips;
+  kept per account and synced with the server.
 - **Insights**: your score against a simulated benchmark, and fuel and money estimates.
 - **Account**: sign in, sign up or try the demo; vehicle settings; crash alert demo.
 - **Support**: a live chat with the support team, who answer from a web page.
 
 Trips start and end by themselves from the car's data, so there is no start or end button.
-For now the data comes from a built-in car simulator, so the whole app works without a car,
-GPS or server. Trips, road reports, accounts and settings are saved on the phone and are
-still there after a restart. Fuel, money and benchmark values are estimates and are labelled
-as such.
+The car's data comes from a built-in car simulator, so the app works without a car or GPS,
+and demo mode works without the server too. Fuel, money and benchmark values are estimates
+and are labelled as such.
 
 <p>
-  <img src="docs/screenshots/drive.png" width="22%" alt="Drive">
-  <img src="docs/screenshots/trips.png" width="22%" alt="Trips">
-  <img src="docs/screenshots/trip-detail.png" width="22%" alt="Trip detail">
-  <img src="docs/screenshots/settings.png" width="22%" alt="Settings">
+  <img src="docs/screenshots/drive.png" width="23%" alt="Drive: live speed, limit and score">
+  <img src="docs/screenshots/reports.png" width="23%" alt="A report on the road: still there?">
+  <img src="docs/screenshots/map.png" width="23%" alt="Map with events and road reports">
+  <img src="docs/screenshots/trips.png" width="23%" alt="Trip history">
 </p>
+<p>
+  <img src="docs/screenshots/trip-detail.png" width="23%" alt="Trip detail with lost points">
+  <img src="docs/screenshots/insights.png" width="23%" alt="Insights against the benchmark">
+  <img src="docs/screenshots/support.png" width="23%" alt="Support chat">
+  <img src="docs/screenshots/crash-alert.png" width="23%" alt="Crash alert">
+</p>
+
+A three-minute walk through the app for a presentation is in [docs/demo-script.md](docs/demo-script.md).
 
 ## Tech stack
 
@@ -44,6 +54,38 @@ as such.
 - ktlint, detekt and Kover for code style, code checks and test coverage
 - GitHub Actions for continuous integration
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph phone["Phone: Android app"]
+        sim["Simulated car + tracker<br/>(:simulator)"] -- "AVL records" --> tel["Decoding<br/>(:telematics)"]
+        tel -- "samples" --> dom["Driving rules: events, score,<br/>trips, report radar (:domain)"]
+        dom --> repo["Repositories<br/>(:app data)"]
+        repo --> vm["ViewModels"] --> ui["Compose screens"]
+        repo <--> local[("Room + DataStore")]
+    end
+    subgraph docker["Docker on the computer"]
+        server["Ktor server<br/>(:server)"] <--> pg[("PostgreSQL")]
+    end
+    repo <-- "HTTP: accounts, trips, reports<br/>WebSocket: support chat" --> server
+    agent["Support team's<br/>web page"] <-- "WebSocket" --> server
+```
+
+The phone works on its own copy of everything, so the app keeps working without the server;
+what was not sent yet goes out when the connection is back. The app and the server exchange
+the same classes from `:model` as JSON, and the server uses the same rules from `:domain`
+(scoring, report lifetimes, password hashing), so both sides always agree.
+
+```mermaid
+flowchart TD
+    app[":app"] --> domain[":domain"] & telematics[":telematics"] & simulator[":simulator"]
+    server[":server"] --> domain & simulator
+    simulator --> telematics & domain
+    telematics --> model[":model"]
+    domain --> model
+```
+
 ## Project structure
 
 ```
@@ -54,37 +96,43 @@ gpstracker/
 ├── domain/                 Driving rules: events, score, trip detection
 ├── simulator/              A simulated car with a tracker, driving routes in Kaunas
 ├── server/                 The project's server (Ktor + PostgreSQL), packed as a Docker image
+│   └── src/main/kotlin/.../server/
+│       ├── auth/, accounts/ Sign-up, sign-in, tokens
+│       ├── support/        Support chat over WebSockets
+│       ├── reports/        Shared road reports
+│       ├── trips/          Each driver's trip history
+│       └── resources/      Database migrations, the support team's web page
 ├── app/                    The Android app
 │   └── src/main/java/com/example/gpstracker/
 │       ├── di/             Koin modules: which object is created where
 │       ├── data/
 │       │   ├── local/      Room database: tables, queries, saved trip history
+│       │   ├── remote/     Calls to the server (Ktor client)
+│       │   ├── trips/      Syncs each account's trips with the server
+│       │   ├── support/    Support chat connection
 │       │   ├── settings/   Settings saved with DataStore
 │       │   ├── telematics/ Simulated data source and road map lookup
 │       │   ├── tracing/    Sends traces to Logcat in debug builds
 │       │   ├── drive/      Runs the driving rules and prepares data for the screens
 │       │   ├── estimate/   Fuel estimate, benchmark, insights
-│       │   ├── reports/    Road reports: warnings ahead, saving, votes
-│       │   ├── auth/       Local accounts, password hashing, saved session
-│       │   └── fake/       Demo trip history and preview data
+│       │   ├── reports/    Road reports: warnings ahead, saving, sharing, votes
+│       │   ├── auth/       Sign-in through the server, saved session
+│       │   └── fake/       Preview data
 │       └── ui/
 │           ├── theme/      Colors, fonts, shapes
 │           ├── model/      Models the screens display
 │           ├── components/ Reusable pieces: gauge, charts, cards, banners
 │           ├── navigation/ Routes and bottom bar
-│           └── auth, drive, map, trips, tripdetail, insights, settings, crash
+│           └── auth, drive, map, trips, tripdetail, insights, settings, support, crash
 ├── app/schemas/            Exported database schema of every version (for migrations)
 ├── compose.yaml            Starts PostgreSQL and the server in Docker on this computer
 ├── config/detekt/          Code check settings
-└── docs/                   Screenshots and font license
+└── docs/                   Screenshots, demo script and font license
 ```
 
-Dependencies point one way: `app` uses `domain`, `telematics` and `simulator`;
-`server` uses `domain` and `model`; `domain` and `telematics` use `model`; `model` uses
-nothing of ours. The app and the server send each other the same `model` classes, and hash
-passwords with the same code from `domain`. The driving rules
-therefore never depend on Android, a device format or a screen. Every module may use
-`tracing`, which depends on nothing of ours either.
+Dependencies point one way (see the second diagram): `model` uses nothing of ours, and the
+driving rules in `domain` never depend on Android, a device format, a screen or the server.
+Every module may use `tracing`, which depends on nothing of ours either.
 
 Tracing is for developers only. Each tracker record starts a trace, and every module logs
 its step under the same trace ID. In a debug build, open Logcat in Android Studio and

@@ -123,12 +123,6 @@ private fun CanvasRouteMap(
                 drawCircle(LineWhite, 9.dp.toPx(), o)
             }
         }
-        Text(
-            text = stringResource(R.string.map_preview_label),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
-        )
     }
 }
 

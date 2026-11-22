@@ -43,7 +43,7 @@
     <string name="unit_km">km</string>
 
     <!-- Map -->
-    <string name="map_preview_label">Map preview</string>
+    <string name="map_preview_label">Map of the route, with driving events and road reports</string>
     <string name="map_current_position">Current position</string>
 
 
