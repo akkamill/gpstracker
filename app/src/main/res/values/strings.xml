@@ -102,12 +102,10 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_section_data_source">Data source</string>
-    <string name="settings_source_replay">Demo replay</string>
-    <string name="settings_source_live">Live device</string>
-    <string name="settings_server_label">Server address</string>
-    <string name="settings_server_hint">WebSocket address of the relay server</string>
-    <string name="settings_server_error">Address must start with ws:// or wss://</string>
+    <string name="settings_section_car_data">Car data</string>
+    <string name="settings_car_source">Simulated demo car</string>
+    <string name="settings_car_source_hint">A simulated car with a tracker drives the demo routes in Kaunas, so no car or GPS is needed. Connecting a real tracker is planned.</string>
+    <string name="settings_server_address">Server: %1$s</string>
     <string name="settings_section_scoring">Scoring</string>
     <string name="settings_tolerance_title">Speeding tolerance</string>
     <string name="settings_tolerance_zero">0</string>
@@ -188,7 +186,7 @@
     <string name="signin_submit">Sign in</string>
     <string name="signin_new_here">New here?</string>
     <string name="signin_create">Create account</string>
-    <string name="forgot_snackbar">Password reset is not available in the demo yet.</string>
+    <string name="forgot_snackbar">Password reset is not available yet. Create a new account, or try the demo without one.</string>
     <string name="signup_title">Create account</string>
     <string name="password_hint">At least 8 characters, with a letter and a number</string>
     <string name="signup_privacy_checkbox">I agree that my trips are stored and analysed to give me feedback.</string>

@@ -5,7 +5,6 @@ import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.VehicleNumbers
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.CrashAlertUiState
-import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.DriveUiState
 import com.example.gpstracker.ui.model.GpsStatus
 import com.example.gpstracker.ui.model.InsightsPeriod
@@ -86,11 +85,6 @@ object PreviewStates {
 
     val settingsDefault = SettingsUiState()
 
-    val settingsInvalidUrl = SettingsUiState(
-        dataSource = DataSource.Live,
-        serverUrl = "http://10.0.2.2:8080",
-    )
-
     val crashCounting = CrashAlertUiState(visible = true, secondsLeft = 7)
 
     val crashSent = CrashAlertUiState(visible = true, secondsLeft = 0, sent = true)
@@ -123,7 +117,11 @@ object PreviewStates {
 
     val insightsNoPrice = insights(vehicle = FakeData.demoVehicle.copy(fuelPricePerL = null))
 
-    val settingsSignedIn = SettingsUiState(accountName = "Kamila K.", accountEmail = "kamila@example.com")
+    val settingsSignedIn = SettingsUiState(
+        accountName = "Kamila K.",
+        accountEmail = "kamila@example.com",
+        serverAddress = "http://localhost:8080",
+    )
 
     val signInEmpty = SignInUiState()
     val signInFilled = SignInUiState(email = "demo@drivemetrics.app", password = "demo1234")

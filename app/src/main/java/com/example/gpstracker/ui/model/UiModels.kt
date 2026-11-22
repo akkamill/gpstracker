@@ -14,8 +14,6 @@ enum class ScoreBand { Good, Fair, Risky }
 
 enum class EventType { Speeding, HarshBraking, HarshAcceleration, SharpCorner, CrashSuspected }
 
-enum class DataSource { Live, Replay }
-
 /** Comes from the device data, never from the user. */
 enum class VehicleState {
     /** Trip in progress, car moving. */
@@ -154,8 +152,8 @@ data class VehicleProfileUi(
 data class SettingsUiState(
     val accountName: String? = null,
     val accountEmail: String? = null,
-    val dataSource: DataSource = DataSource.Replay,
-    val serverUrl: String = "ws://10.0.2.2:8080/telemetry",
+    /** The server the app talks to; set by the build, shown for information only. */
+    val serverAddress: String = "",
     val speedTolerance: Int = 5,
     /** The car must stand still this long before a trip ends: 2, 5 or 10 minutes. */
     val tripEndAfterMinutes: Int = 5,

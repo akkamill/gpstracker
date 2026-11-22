@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.gpstracker.data.auth.AuthRepository
 import com.example.gpstracker.data.settings.SettingsRepository
 import com.example.gpstracker.data.telematics.DemoControls
-import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.SessionState
 import com.example.gpstracker.ui.model.SettingsUiState
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,18 +17,15 @@ class SettingsViewModel(
     private val store: SettingsRepository,
     private val auth: AuthRepository,
     private val demo: DemoControls,
+    private val serverAddress: String = "",
 ) : ViewModel() {
 
     val state: StateFlow<SettingsUiState> = combine(store.settings, auth.session) { settings, session ->
         when (session) {
             is SessionState.SignedIn -> settings.copy(accountName = session.name, accountEmail = session.email)
             else -> settings.copy(accountName = null, accountEmail = null)
-        }
+        }.copy(serverAddress = serverAddress)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, store.settings.value)
-
-    fun onDataSourceChange(value: DataSource) = store.update { it.copy(dataSource = value) }
-
-    fun onServerUrlChange(value: String) = store.update { it.copy(serverUrl = value) }
 
     fun onToleranceChange(value: Int) = store.update { it.copy(speedTolerance = value) }
 

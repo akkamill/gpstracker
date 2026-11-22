@@ -24,8 +24,6 @@ fun SettingsRoute(
     SettingsScreen(
         state = state,
         onBack = onBack,
-        onDataSourceChange = viewModel::onDataSourceChange,
-        onServerUrlChange = viewModel::onServerUrlChange,
         onToleranceChange = viewModel::onToleranceChange,
         onTripEndAfterChange = viewModel::onTripEndAfterChange,
         onCrashDetectionChange = viewModel::onCrashDetectionChange,
