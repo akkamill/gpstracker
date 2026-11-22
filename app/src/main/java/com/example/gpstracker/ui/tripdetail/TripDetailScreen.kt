@@ -164,6 +164,7 @@ private fun RouteCard(state: TripDetailUi, selectedEventId: String?) {
             .fillMaxWidth()
             .height(200.dp)
             .clip(MaterialTheme.shapes.medium),
+        interactive = false,
     )
 }
 

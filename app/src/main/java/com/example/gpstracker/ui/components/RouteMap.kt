@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -49,9 +50,11 @@ private const val FOLLOW_SPAN_DEG = 0.006
 private const val MIN_SPAN_DEG = 1e-5
 
 /**
- * Route map with a stable signature. Version 1 draws on a [Canvas], so it
- * needs no API key; a later step can swap the body for a real map SDK
- * without touching any screen.
+ * The route, events, reports and the car. In the app this is a real street map ([StreetMap]);
+ * design previews and UI tests, which have no network, get the same things drawn on a grid.
+ *
+ * @param onUserMoved called when the driver drags the street map, so the screen can stop following the car
+ * @param interactive false for a small map inside a scrolling page, so a swipe scrolls the page
  */
 @Composable
 fun RouteMap(
@@ -63,8 +66,27 @@ fun RouteMap(
     followCurrent: Boolean = false,
     dimmed: Boolean = false,
     reports: List<RoadReportUi> = emptyList(),
+    onUserMoved: () -> Unit = {},
+    interactive: Boolean = true,
 ) {
-    CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent, dimmed, reports)
+    if (LocalStreetMap.current && !LocalInspectionMode.current) {
+        val description = stringResource(R.string.map_preview_label)
+        StreetMap(
+            route = route,
+            events = events,
+            modifier = modifier,
+            currentPosition = currentPosition,
+            selectedEventId = selectedEventId,
+            followCurrent = followCurrent,
+            dimmed = dimmed,
+            reports = reports,
+            description = description,
+            onUserMoved = onUserMoved,
+            interactive = interactive,
+        )
+    } else {
+        CanvasRouteMap(route, events, modifier, currentPosition, selectedEventId, followCurrent, dimmed, reports)
+    }
 }
 
 @Composable
@@ -127,7 +149,7 @@ private fun CanvasRouteMap(
 }
 
 /** A rounded square in the report's color with its icon, so report types differ by shape too. */
-private fun DrawScope.drawReportMarker(at: Offset, color: Color, icon: Painter) {
+internal fun DrawScope.drawReportMarker(at: Offset, color: Color, icon: Painter) {
     val box = REPORT_MARKER_DP.dp.toPx()
     val iconSize = REPORT_ICON_DP.dp.toPx()
     val corner = CornerRadius(REPORT_CORNER_DP.dp.toPx())

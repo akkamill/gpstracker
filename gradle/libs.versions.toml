@@ -25,6 +25,7 @@ hikari = "7.1.0"
 postgresql = "42.7.14"
 logback = "1.5.38"
 testcontainers = "2.0.5"
+maplibre = "12.3.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -65,6 +66,9 @@ koin-android = { group = "io.insert-koin", name = "koin-android" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-test = { group = "io.insert-koin", name = "koin-test" }
 koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4" }
+
+# Street map (open source; vector tiles need no key)
+maplibre-android = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
 
 # Server
 ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktor" }

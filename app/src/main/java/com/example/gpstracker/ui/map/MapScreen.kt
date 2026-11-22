@@ -59,6 +59,7 @@ fun MapScreen(
             dimmed = !inProgress,
             reports = state.reports,
             modifier = Modifier.fillMaxSize(),
+            onUserMoved = { followCurrent = false },
         )
         Row(
             modifier = Modifier.align(Alignment.TopStart).padding(16.dp),

@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gpstracker.ui.auth.SessionViewModel
+import com.example.gpstracker.ui.components.LocalStreetMap
 import com.example.gpstracker.ui.crash.CrashAlertOverlay
 import com.example.gpstracker.ui.crash.CrashAlertViewModel
 import com.example.gpstracker.ui.crash.EmergencyActions
@@ -59,7 +61,8 @@ fun DriveMetricsApp() {
         if (start == null) {
             Splash()
         } else {
-            AppContent(startGraph = start)
+            // the real street map is on in the app; previews and UI tests use the drawn one
+            CompositionLocalProvider(LocalStreetMap provides true) { AppContent(startGraph = start) }
         }
     }
 }

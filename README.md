@@ -11,7 +11,7 @@ money wasted by harsh driving, and compares you with a simulated benchmark drive
 - **Drive**: live speed, speed limit, score and trip status. Read-only.
 - **Road reports**: one tap to report an accident, police, a hazard, a jam, a closed road or a
   speed camera; warnings about reports ahead, shared with other drivers through the server.
-- **Map**: the current route with events and reports, or the last trip while parked.
+- **Map**: a street map of the current route with events and reports, or the last trip while parked.
 - **Trips**: history with scores, and trip details with events, fuel estimate and tips;
   kept per account and synced with the server.
 - **Insights**: your score against a simulated benchmark, and fuel and money estimates.
@@ -47,6 +47,8 @@ A three-minute walk through the app for a presentation is in [docs/demo-script.m
 - Kotlin serialization (navigation routes and JSON models)
 - Room (SQLite database) and DataStore (settings files) for saving data on the phone
 - Koin for dependency injection
+- MapLibre street maps with free vector tiles made from OpenStreetMap data (no key needed; the
+  map data credit is behind the (i) button on the map)
 - Server: Ktor, PostgreSQL, Flyway migrations, JWT sign-in, run with Docker Compose
 - Gradle with a version catalog
 - JUnit, coroutine test helpers, Compose UI tests, Room tests on the device and
