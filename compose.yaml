@@ -36,6 +36,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me-0123456789}
       # demo@drivemetrics.app / demo1234, for trying the app
       SEED_DEMO_ACCOUNT: "true"
+      # the key the support team types on http://localhost:8080/support
+      SUPPORT_AGENT_KEY: ${SUPPORT_AGENT_KEY:-local-support-key}
     ports:
       - "8080:8080"
     depends_on:

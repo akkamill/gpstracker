@@ -14,6 +14,8 @@ data class ServerConfig(
     val tokenLifetimeDays: Long,
     /** Creates the demo account at start, for local development and demos. */
     val seedDemoAccount: Boolean = false,
+    /** The support team's key for the chat page; without one, the page cannot join chats. */
+    val supportAgentKey: String? = null,
 ) {
     override fun toString() = "ServerConfig(port=$port, databaseUrl=$databaseUrl, databaseUser=$databaseUser, secrets=***)"
 
@@ -34,6 +36,7 @@ data class ServerConfig(
                 jwtSecret = secret,
                 tokenLifetimeDays = env["TOKEN_LIFETIME_DAYS"]?.toLongOrNull() ?: DEFAULT_TOKEN_DAYS,
                 seedDemoAccount = env["SEED_DEMO_ACCOUNT"].toBoolean(),
+                supportAgentKey = env["SUPPORT_AGENT_KEY"]?.takeIf { it.isNotBlank() },
             )
         }
     }

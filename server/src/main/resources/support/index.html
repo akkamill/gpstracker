@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DriveMetrics Support</title>
+<style>
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --line: #dde2e7; --text: #14181c; --muted: #5d6873;
+    --accent: #1f6fd1; --accent-text: #ffffff; --mine: #1f6fd1; --theirs: #e8edf2; --danger: #c62828; --ok: #1b873f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1316; --surface: #171c21; --line: #2a3138; --text: #e8edf1; --muted: #9aa6b1;
+      --accent: #4da3ff; --accent-text: #0b1520; --mine: #2f7fd8; --theirs: #232a31; --danger: #ef5350; --ok: #43c46b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 17px; margin: 0; flex: 1; }
+  .status { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+  .dot.on { background: var(--ok); }
+  .dot.off { background: var(--danger); }
+  main { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; height: calc(100vh - 53px); }
+  @media (max-width: 700px) { main { grid-template-columns: 1fr; } main.chat-open #list { display: none; } main:not(.chat-open) #chat { display: none; } }
+  #list { border-right: 1px solid var(--line); overflow-y: auto; background: var(--surface); }
+  .conv { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; padding: 12px 16px; cursor: pointer; font: inherit; }
+  .conv:hover, .conv.selected { background: var(--theirs); }
+  .conv .name { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .conv .last { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 11px; font-weight: 600; color: var(--accent-text); background: var(--accent); border-radius: 10px; padding: 1px 8px; }
+  #chat { display: flex; flex-direction: column; min-width: 0; }
+  #chat-head { padding: 12px 16px; border-bottom: 1px solid var(--line); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  #back { display: none; }
+  @media (max-width: 700px) { #back { display: inline-block; } }
+  #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 72%; padding: 8px 12px; border-radius: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.agent { align-self: flex-end; background: var(--mine); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.driver { align-self: flex-start; background: var(--theirs); border-bottom-left-radius: 4px; }
+  .msg time { display: block; font-size: 11px; opacity: .75; margin-top: 2px; }
+  form#send { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--surface); }
+  textarea { flex: 1; resize: none; min-height: 44px; max-height: 140px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
+  button.primary { border: 0; border-radius: 10px; padding: 0 18px; min-height: 44px; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.link { border: 0; background: none; color: var(--accent); font: inherit; cursor: pointer; padding: 4px; }
+  .empty { margin: auto; color: var(--muted); text-align: center; padding: 24px; }
+  #login { max-width: 360px; margin: 12vh auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  #login h2 { margin: 0; font-size: 18px; }
+  #login input { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
+  #login p { margin: 0; color: var(--muted); font-size: 14px; }
+  .error { color: var(--danger); font-size: 14px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>DriveMetrics Support</h1>
+  <span class="status"><span id="dot" class="dot"></span><span id="status">Not connected</span></span>
+  <button id="logout" class="link" hidden>Leave</button>
+</header>
+
+<form id="login">
+  <h2>Support team sign-in</h2>
+  <p>Enter the support key (SUPPORT_AGENT_KEY on the server).</p>
+  <input id="key" type="password" autocomplete="current-password" aria-label="Support key" required>
+  <span id="login-error" class="error" role="alert"></span>
+  <button class="primary" type="submit">Open the chats</button>
+</form>
+
+<main id="app" hidden>
+  <nav id="list" aria-label="Conversations"><p class="empty">No conversations yet.</p></nav>
+  <section id="chat" aria-live="polite">
+    <div id="chat-head"><button id="back" class="link" type="button">‹ Back</button><span id="chat-title">Choose a conversation</span></div>
+    <div id="messages"><p class="empty">Messages from drivers appear on the left.</p></div>
+    <form id="send">
+      <textarea id="text" rows="1" maxlength="2000" placeholder="Write an answer…" aria-label="Answer" disabled></textarea>
+      <button class="primary" type="submit" id="send-button" disabled>Send</button>
+    </form>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let socket = null, key = null, conversations = [], selected = null, retry = 0, leaving = false;
+  const history = {}; // conversationId -> messages
+
+  // Texts from drivers are always set with textContent, never as HTML.
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const time = (ms) => new Date(ms).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
+
+  function setStatus(text, state) { $('status').textContent = text; $('dot').className = 'dot ' + (state || ''); }
+
+  function connect() {
+    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    socket = new WebSocket(`${scheme}://${location.host}/api/support/agent?key=${encodeURIComponent(key)}`);
+    setStatus('Connecting…');
+    let opened = false;
+    socket.onopen = () => { opened = true; retry = 0; setStatus('Online: drivers see that support is available', 'on'); showApp(); if (selected) send({ type: 'open', conversationId: selected }); };
+    socket.onmessage = (e) => handle(JSON.parse(e.data));
+    socket.onclose = (e) => {
+      if (leaving) return;
+      if (e.code === 1008) { showLogin('That key was not accepted.'); return; }
+      setStatus(opened ? 'Connection lost, reconnecting…' : 'Server not reachable, retrying…', 'off');
+      setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++));
+    };
+  }
+
+  function send(event) { if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(event)); }
+
+  function handle(event) {
+    switch (event.type) {
+      case 'conversations': conversations = event.conversations; renderList(); break;
+      case 'history': history[event.conversationId] = event.messages; if (event.conversationId === selected) renderMessages(); break;
+      case 'message': {
+        const m = event.message;
+        if (history[m.conversationId]) history[m.conversationId].push(m);
+        if (m.conversationId === selected) renderMessages();
+        break;
+      }
+      case 'error': setStatus(event.error.message, 'off'); break;
+    }
+  }
+
+  function renderList() {
+    const list = $('list');
+    list.replaceChildren();
+    if (!conversations.length) { list.append(el('p', 'empty', 'No conversations yet.')); return; }
+    for (const c of conversations) {
+      const b = el('button', 'conv' + (c.id === selected ? ' selected' : ''));
+      b.type = 'button';
+      const name = el('span', 'name'); name.append(el('span', null, c.driverName));
+      if (c.waitingForAgent) name.append(el('span', 'badge', 'Waiting'));
+      b.append(name, el('div', 'last', c.lastMessage ? (c.lastMessage.sender === 'Agent' ? 'You: ' : '') + c.lastMessage.text : 'No messages yet'));
+      b.onclick = () => select(c);
+      list.append(b);
+    }
+  }
+
+  function select(c) {
+    selected = c.id;
+    $('chat-title').textContent = c.driverName;
+    $('app').classList.add('chat-open');
+    $('text').disabled = false; $('send-button').disabled = false;
+    renderList();
+    if (history[c.id]) renderMessages(); else $('messages').replaceChildren(el('p', 'empty', 'Loading…'));
+    send({ type: 'open', conversationId: c.id });
+    $('text').focus();
+  }
+
+  function renderMessages() {
+    const box = $('messages');
+    box.replaceChildren();
+    const messages = history[selected] || [];
+    if (!messages.length) box.append(el('p', 'empty', 'No messages yet.'));
+    for (const m of messages) {
+      const b = el('div', 'msg ' + (m.sender === 'Agent' ? 'agent' : 'driver'), m.text);
+      b.append(el('time', null, time(m.sentAtMs)));
+      box.append(b);
+    }
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function showApp() { $('login').hidden = true; $('app').hidden = false; $('logout').hidden = false; }
+  function showLogin(error) {
+    sessionStorage.removeItem('supportKey'); key = null;
+    $('app').hidden = true; $('logout').hidden = true; $('login').hidden = false;
+    $('login-error').textContent = error || '';
+    setStatus('Not connected');
+  }
+
+  $('login').onsubmit = (e) => {
+    e.preventDefault();
+    key = $('key').value; leaving = false;
+    try { sessionStorage.setItem('supportKey', key); } catch (_) {}
+    connect();
+  };
+  $('send').onsubmit = (e) => {
+    e.preventDefault();
+    const text = $('text').value.trim();
+    if (!text || !selected) return;
+    send({ type: 'send', text, clientId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), conversationId: selected });
+    $('text').value = '';
+  };
+  $('text').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('send').requestSubmit(); } };
+  $('back').onclick = () => { $('app').classList.remove('chat-open'); };
+  $('logout').onclick = () => { leaving = true; if (socket) socket.close(); showLogin(); };
+
+  try { key = sessionStorage.getItem('supportKey'); } catch (_) {}
+  if (key) connect();
+})();
+</script>
+</body>
+</html>

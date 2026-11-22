@@ -6,6 +6,9 @@ import com.example.gpstracker.model.api.SignInRequest
 import com.example.gpstracker.model.api.SignUpRequest
 import com.example.gpstracker.server.auth.AuthService
 import com.example.gpstracker.server.auth.Tokens
+import com.example.gpstracker.server.support.SupportHub
+import com.example.gpstracker.server.support.agentChat
+import com.example.gpstracker.server.support.driverChat
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -16,6 +19,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -25,7 +29,11 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
 
 /** An error that becomes a JSON [ApiError] response with [status]. */
@@ -36,6 +44,9 @@ class ServerDependencies(
     val auth: AuthService,
     val tokens: Tokens,
     val databaseUp: () -> Boolean,
+    val support: SupportHub,
+    /** The support team's key for the chat page; null turns the page's chat off. */
+    val agentKey: String?,
 )
 
 /**
@@ -45,6 +56,9 @@ class ServerDependencies(
  * - `POST /api/auth/sign-up`    create an account, returns a token
  * - `POST /api/auth/sign-in`    returns a token
  * - `GET  /api/me`              the signed-in account (needs "Authorization: Bearer <token>")
+ * - `WS   /api/support/chat`    a driver's support chat (needs the token)
+ * - `WS   /api/support/agent`   the support team's side of all chats (needs the team's key)
+ * - `GET  /support`             the support team's web page
  */
 fun Application.driveMetrics(deps: ServerDependencies) {
     val tracer = Tracing.tracer("server")
@@ -64,6 +78,11 @@ fun Application.driveMetrics(deps: ServerDependencies) {
         status(HttpStatusCode.Unauthorized) { call, status ->
             call.respond(status, ApiError(ApiError.UNAUTHORIZED, "Sign in again."))
         }
+    }
+    install(WebSockets) {
+        pingPeriod = PING_PERIOD
+        timeout = PING_TIMEOUT
+        maxFrameSize = MAX_FRAME_BYTES
     }
     install(Authentication) {
         jwt(TOKEN_AUTH) {
@@ -88,9 +107,15 @@ fun Application.driveMetrics(deps: ServerDependencies) {
                     val id = UUID.fromString(call.principal<JWTPrincipal>()!!.payload.subject)
                     call.respond(deps.auth.account(id))
                 }
+                driverChat(deps.support)
             }
+            agentChat(deps.support, deps.agentKey)
         }
+        staticResources("/support", "support")
     }
 }
 
 private const val TOKEN_AUTH = "token"
+private val PING_PERIOD = 15.seconds
+private val PING_TIMEOUT = 30.seconds
+private const val MAX_FRAME_BYTES = 64L * 1024
