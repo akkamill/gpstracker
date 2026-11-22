@@ -15,3 +15,6 @@
 local.properties
 
 **/build/
+
+# Local secrets for docker compose
+.env
