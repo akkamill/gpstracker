@@ -4,17 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gpstracker.ui.auth.SessionViewModel
 import com.example.gpstracker.ui.model.SessionState
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SignInRoute(
     onSignedIn: () -> Unit,
     onGoToSignUp: () -> Unit,
     onBack: () -> Unit,
-    viewModel: SignInViewModel = viewModel(),
-    sessionViewModel: SessionViewModel = viewModel(),
+    viewModel: SignInViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val session by sessionViewModel.session.collectAsStateWithLifecycle()

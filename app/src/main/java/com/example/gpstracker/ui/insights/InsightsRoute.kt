@@ -3,18 +3,18 @@ package com.example.gpstracker.ui.insights
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gpstracker.ui.auth.SessionViewModel
 import com.example.gpstracker.ui.auth.initialsOf
 import com.example.gpstracker.ui.model.SessionState
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun InsightsRoute(
     onOpenSettings: () -> Unit,
     onSetFuelPrice: () -> Unit,
     onCreateAccount: () -> Unit,
-    viewModel: InsightsViewModel = viewModel(),
-    sessionViewModel: SessionViewModel = viewModel(),
+    viewModel: InsightsViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val session by sessionViewModel.session.collectAsStateWithLifecycle()

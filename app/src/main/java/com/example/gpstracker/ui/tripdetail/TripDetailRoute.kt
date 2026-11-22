@@ -3,14 +3,15 @@ package com.example.gpstracker.ui.tripdetail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun TripDetailRoute(
     tripId: String,
     onBack: () -> Unit,
     onSetFuelPrice: () -> Unit,
-    viewModel: TripDetailViewModel = viewModel(key = tripId) { TripDetailViewModel(tripId) },
+    viewModel: TripDetailViewModel = koinViewModel(key = tripId) { parametersOf(tripId) },
 ) {
     val selected by viewModel.selectedEventId.collectAsStateWithLifecycle()
     TripDetailScreen(

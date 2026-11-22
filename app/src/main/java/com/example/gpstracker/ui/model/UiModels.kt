@@ -138,6 +138,8 @@ data class TripsUiState(
     val tripInProgressLabel: String? = null,
     val weekAverageScore: Int? = null,
     val weekScores: List<Int> = emptyList(),
+    /** Trips saved in the last seven days. */
+    val weekTripCount: Int = 0,
     val sections: List<Pair<String, List<TripSummaryUi>>> = emptyList(),
 )
 

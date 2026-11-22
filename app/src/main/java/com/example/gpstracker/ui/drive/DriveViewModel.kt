@@ -2,7 +2,6 @@ package com.example.gpstracker.ui.drive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.reports.ReportUiMapper
 import com.example.gpstracker.data.reports.RoadReportService
@@ -18,8 +17,8 @@ import kotlinx.coroutines.flow.stateIn
  * nothing to start or stop, because trips are detected from the car's data.
  */
 class DriveViewModel(
-    repository: DriveRepository = AppContainer.drive,
-    private val reports: RoadReportService = AppContainer.reports,
+    repository: DriveRepository,
+    private val reports: RoadReportService,
     private val mapper: ReportUiMapper = ReportUiMapper(),
 ) : ViewModel() {
     val state: StateFlow<DriveUiState> = combine(repository.drive, reports.state, mapper::apply)

@@ -9,6 +9,7 @@ import com.example.gpstracker.model.driving.DrivingEvent
 import com.example.gpstracker.model.driving.DrivingEventType
 import com.example.gpstracker.model.geo.LatLon
 import com.example.gpstracker.model.telemetry.GnssQuality
+import com.example.gpstracker.model.trip.SavedTrip
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState as DomainVehicleState
 import com.example.gpstracker.ui.model.ConnectionStatus
@@ -22,6 +23,7 @@ import com.example.gpstracker.ui.model.TripsUiState
 import com.example.gpstracker.ui.model.VehicleState
 import com.example.gpstracker.ui.model.scoreBandOf
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.max
@@ -46,9 +48,12 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
 
     fun point(p: LatLon) = GeoPointUi(p.latitude, p.longitude)
 
-    fun summary(id: String, trip: Trip): TripSummaryUi = TripSummaryUi(
+    /** The trip's row in the history; [nowMs] decides whether it was "Today" or "Yesterday". */
+    fun summary(saved: SavedTrip, nowMs: Long): TripSummaryUi = summary(saved.id, saved.trip, dayLabel(saved.savedAtMs, nowMs))
+
+    private fun summary(id: String, trip: Trip, dateLabel: String): TripSummaryUi = TripSummaryUi(
         id = id,
-        dateLabel = TODAY,
+        dateLabel = dateLabel,
         timeRange = "${timeLabel(trip.startMs)} – ${timeLabel(trip.endMs)}",
         fromTo = "${trip.startPlace ?: UNKNOWN_PLACE} → ${trip.endPlace ?: UNKNOWN_PLACE}",
         distanceKm = trip.distanceKm,
@@ -58,8 +63,10 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
         eventCount = trip.events.size,
     )
 
-    /** History stays on the real calendar, so the record is stamped with [savedAtMs]. */
-    fun record(id: String, trip: Trip, savedAtMs: Long) = TripRecord(
+    /** History stays on the real calendar, so the record is stamped with the time it was saved. */
+    fun record(saved: SavedTrip): TripRecord = record(saved.id, saved.trip, saved.savedAtMs)
+
+    private fun record(id: String, trip: Trip, savedAtMs: Long) = TripRecord(
         id = id,
         startMs = savedAtMs,
         distanceKm = trip.distanceKm,
@@ -71,7 +78,11 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
         speedingMinutes = trip.speedingMs / MS_PER_MINUTE.toDouble(),
     )
 
-    fun detail(summary: TripSummaryUi, trip: Trip, record: TripRecord, vehicle: VehicleNumbers): TripDetailUi {
+    /** Detail of a saved trip; the fuel estimate uses the vehicle profile as it is now. */
+    fun detail(saved: SavedTrip, nowMs: Long, vehicle: VehicleNumbers): TripDetailUi =
+        detail(summary(saved, nowMs), saved.trip, record(saved), vehicle)
+
+    private fun detail(summary: TripSummaryUi, trip: Trip, record: TripRecord, vehicle: VehicleNumbers): TripDetailUi {
         val estimate = estimator.estimate(
             FuelInput(
                 distanceKm = record.distanceKm,
@@ -93,15 +104,20 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
         )
     }
 
-    fun tripsState(summaries: List<TripSummaryUi>, tripStartMs: Long?): TripsUiState {
-        val recent = summaries.take(WEEK_TRIPS)
-        return TripsUiState(
-            tripInProgressLabel = tripStartMs?.let { "Driving now, started ${timeLabel(it)}" },
-            weekAverageScore = recent.takeIf { it.isNotEmpty() }?.map { it.score }?.average()?.roundToInt(),
-            weekScores = recent.map { it.score }.reversed(),
-            sections = summaries.groupBy { it.dateLabel }.toList(),
-        )
-    }
+    /** Scores of the trips saved in the seven days before [nowMs], newest first. */
+    fun weekScores(saved: List<SavedTrip>, nowMs: Long): List<Int> =
+        saved.filter { nowMs - it.savedAtMs < WEEK_MS }.map { it.trip.score }
+
+    /**
+     * @param weekScores scores of this week's trips, newest first (see [weekScores])
+     */
+    fun tripsState(summaries: List<TripSummaryUi>, tripStartMs: Long?, weekScores: List<Int>): TripsUiState = TripsUiState(
+        tripInProgressLabel = tripStartMs?.let { "Driving now, started ${timeLabel(it)}" },
+        weekAverageScore = weekScores.takeIf { it.isNotEmpty() }?.average()?.roundToInt(),
+        weekScores = weekScores.reversed(),
+        weekTripCount = weekScores.size,
+        sections = summaries.groupBy { it.dateLabel }.toList(),
+    )
 
     /** Up to three tips, one per kind of mistake, naming the road where it happened. */
     fun tips(events: List<DrivingEvent>): List<String> {
@@ -137,6 +153,20 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
 
     fun timeLabel(ms: Long): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(ms))
 
+    /** "Today", "Yesterday" or a short date such as "Mon, 5 Oct", on the phone's calendar. */
+    fun dayLabel(ms: Long, nowMs: Long): String = when (dayNumber(nowMs) - dayNumber(ms)) {
+        0L -> TODAY
+        1L -> YESTERDAY
+        else -> SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date(ms))
+    }
+
+    /** Days since the epoch in the phone's time zone, so a day starts at local midnight. */
+    fun dayNumber(ms: Long): Long {
+        val calendar = Calendar.getInstance().apply { timeInMillis = ms }
+        val offset = calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET)
+        return Math.floorDiv(ms + offset, MS_PER_DAY)
+    }
+
     /** "mm:ss" of a running trip. */
     fun durationLabel(ms: Long): String {
         val seconds = (ms / MS_PER_SECOND).toInt().coerceAtLeast(0)
@@ -166,9 +196,11 @@ class DriveUiMapper(private val estimator: FuelEstimator = FuelEstimator()) {
 
     private companion object {
         const val TODAY = "Today"
+        const val YESTERDAY = "Yesterday"
+        const val MS_PER_DAY = 86_400_000L
         const val UNKNOWN_ROAD = "Unknown road"
         const val UNKNOWN_PLACE = "Unknown place"
-        const val WEEK_TRIPS = 7
+        const val WEEK_MS = 7 * 86_400_000L
         const val MAX_TIPS = 3
         const val G_MPS2 = 9.81
         const val MS_PER_SECOND = 1_000

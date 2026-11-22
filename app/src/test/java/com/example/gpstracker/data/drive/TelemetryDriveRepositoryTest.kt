@@ -1,8 +1,12 @@
 package com.example.gpstracker.data.drive
 
+import com.example.gpstracker.data.fake.DemoHistory
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.domain.trip.DriveTracker
+import com.example.gpstracker.domain.trip.InMemoryTripHistory
+import com.example.gpstracker.domain.trip.TripHistory
+import com.example.gpstracker.model.trip.SavedTrip
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
@@ -35,13 +39,19 @@ class TelemetryDriveRepositoryTest {
     private class Run(val repository: TelemetryDriveRepository, val states: List<DriveUiState>)
 
     /** Starts the whole path and lets [seconds] of real (virtual) time pass. */
-    private fun TestScope.run(seconds: Int): Run {
+    private fun TestScope.run(
+        seconds: Int,
+        history: TripHistory = InMemoryTripHistory(),
+        demo: (Long) -> List<SavedTrip> = DemoHistory::build,
+    ): Run {
         val source = SimulatedTelemetrySource(SimulatedCar(startMs = 1_700_000_000_000L))
         val repository = TelemetryDriveRepository(
             source = source,
             tracker = DriveTracker(map = SimulatorMapLookup()),
             settings = settings,
             clock = { testScheduler.currentTime },
+            history = history,
+            demoHistory = demo,
         )
         val states = mutableListOf<DriveUiState>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { repository.drive.toList(states) }
@@ -99,7 +109,7 @@ class TelemetryDriveRepositoryTest {
 
     @Test
     fun `a finished trip has a detail, a record and becomes the last trip`() = runTest {
-        val before = run(seconds = 0).repository.records.value.size
+        val before = run(seconds = 1).repository.records.value.size
         val r = run(seconds = DRIVE_THERE_S)
         val saved = r.states.mapNotNull { it.tripJustSaved }.first()
         val detail = r.repository.tripDetail(saved.id)!!
@@ -124,6 +134,27 @@ class TelemetryDriveRepositoryTest {
     fun `the trips tab says when a trip is in progress`() = runTest {
         val r = run(seconds = 60)
         assertTrue(r.repository.trips.value.tripInProgressLabel!!.startsWith("Driving now"))
+    }
+
+    @Test
+    fun `finished trips are saved to the history and are there after a restart`() = runTest {
+        val history = InMemoryTripHistory()
+        val saved = run(seconds = DRIVE_THERE_S, history = history).states.mapNotNull { it.tripJustSaved }.first()
+        assertEquals(saved.id, history.all().first().id)
+
+        // the next start loads it; the demo trips are not added again
+        val restarted = run(seconds = 1, history = history, demo = { error("history is not empty") })
+        assertEquals(saved.id, restarted.repository.trips.value.sections.first().second.first().id)
+        assertNotNull(restarted.repository.tripDetail(saved.id))
+        assertEquals(history.all().size, restarted.repository.records.value.size)
+    }
+
+    @Test
+    fun `an empty history is filled with the demo trips once`() = runTest {
+        val history = InMemoryTripHistory()
+        val r = run(seconds = 1, history = history)
+        assertEquals(DemoHistory.build(0).size, history.all().size)
+        assertEquals(DemoHistory.build(0).first().id, r.states.last().lastTrip?.id)
     }
 
     private companion object {

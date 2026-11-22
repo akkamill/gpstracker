@@ -16,7 +16,9 @@ money wasted by harsh driving, and compares you with a simulated benchmark drive
 
 Trips start and end by themselves from the car's data, so there is no start or end button.
 For now the data comes from a built-in car simulator, so the whole app works without a car,
-GPS or server. Fuel, money and benchmark values are estimates and are labelled as such.
+GPS or server. Trips, road reports, accounts and settings are saved on the phone and are
+still there after a restart. Fuel, money and benchmark values are estimates and are labelled
+as such.
 
 <p>
   <img src="docs/screenshots/drive.png" width="22%" alt="Drive">
@@ -32,8 +34,10 @@ GPS or server. Fuel, money and benchmark values are estimates and are labelled a
 - Navigation Compose (type-safe routes)
 - ViewModel, StateFlow and coroutines
 - Kotlin serialization (navigation routes and JSON models)
+- Room (SQLite database) and DataStore (settings files) for saving data on the phone
+- Koin for dependency injection
 - Gradle with a version catalog
-- JUnit, coroutine test helpers and Compose UI tests
+- JUnit, coroutine test helpers, Compose UI tests and Room tests on the device
 - ktlint, detekt and Kover for code style, code checks and test coverage
 - GitHub Actions for continuous integration
 
@@ -48,19 +52,24 @@ gpstracker/
 ├── simulator/              A simulated car with a tracker, driving routes in Kaunas
 ├── app/                    The Android app
 │   └── src/main/java/com/example/gpstracker/
+│       ├── di/             Koin modules: which object is created where
 │       ├── data/
+│       │   ├── local/      Room database: tables, queries, saved trip history
+│       │   ├── settings/   Settings saved with DataStore
 │       │   ├── telematics/ Simulated data source and road map lookup
 │       │   ├── tracing/    Sends traces to Logcat in debug builds
 │       │   ├── drive/      Runs the driving rules and prepares data for the screens
 │       │   ├── estimate/   Fuel estimate, benchmark, insights
-│       │   ├── auth/       Account interface
-│       │   └── fake/       Fake accounts, sample history, preview data
+│       │   ├── reports/    Road reports: warnings ahead, saving, votes
+│       │   ├── auth/       Local accounts, password hashing, saved session
+│       │   └── fake/       Demo trip history and preview data
 │       └── ui/
 │           ├── theme/      Colors, fonts, shapes
 │           ├── model/      Models the screens display
 │           ├── components/ Reusable pieces: gauge, charts, cards, banners
 │           ├── navigation/ Routes and bottom bar
 │           └── auth, drive, map, trips, tripdetail, insights, settings, crash
+├── app/schemas/            Exported database schema of every version (for migrations)
 ├── config/detekt/          Code check settings
 └── docs/                   Screenshots and font license
 ```
@@ -75,7 +84,24 @@ its step under the same trace ID. In a debug build, open Logcat in Android Studi
 filter on `DM/` (or `DM/domain` for one module). Release builds write no logs.
 
 Each screen has a stateless `Screen` composable, a `Route` that connects it to its
-`ViewModel`, and a `ViewModel` that exposes one immutable state.
+`ViewModel`, and a `ViewModel` that exposes one immutable state. Koin creates the
+ViewModels and hands each one what it needs, so tests can pass in fakes instead.
+
+### Saving data on the phone
+
+| What | Where | Notes |
+| --- | --- | --- |
+| Trip history (route and events) | Room table `trips` and `trip_events` | Events are linked to their trip and deleted with it |
+| Road reports | Room table `road_reports` | Expired and voted-away reports are removed |
+| Accounts | Room table `accounts` | Passwords are only kept as salted PBKDF2 hashes |
+| Settings and vehicle profile | DataStore file `settings` | |
+| Who is signed in | DataStore file `session` | Only the email, never a password |
+
+On the first start the history is filled with eight weeks of demo trips on the simulator's
+routes, so Trips and Insights have something to show. The screens work with copies in
+memory, and changes are written in the background, so saving never makes the app wait.
+When a table changes, the database version goes up and a migration keeps the old data;
+every version's schema is saved in `app/schemas`.
 
 ## Run the tests
 
@@ -85,7 +111,7 @@ Unit tests (no device needed):
 ./gradlew :tracing:test :model:test :telematics:test :domain:test :simulator:test :app:testDebugUnitTest
 ```
 
-UI tests (an emulator or a phone must be connected):
+UI and database tests (an emulator or a phone must be connected):
 
 ```bash
 ./gradlew connectedDebugAndroidTest

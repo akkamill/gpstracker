@@ -2,7 +2,6 @@ package com.example.gpstracker.ui.crash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gpstracker.AppContainer
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.CrashAlertUiState
 import com.example.gpstracker.ui.model.SettingsUiState
@@ -16,7 +15,7 @@ import kotlinx.coroutines.launch
 
 /** Runs the 10-second countdown; after it, the demo alert counts as sent. */
 class CrashAlertViewModel(
-    private val settings: StateFlow<SettingsUiState> = AppContainer.settings,
+    private val settings: StateFlow<SettingsUiState>,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CrashAlertUiState())
     val state: StateFlow<CrashAlertUiState> = _state.asStateFlow()

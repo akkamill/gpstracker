@@ -2,7 +2,6 @@ package com.example.gpstracker.ui.insights
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.estimate.InsightsCalculator
 import com.example.gpstracker.data.estimate.toNumbers
@@ -21,8 +20,8 @@ import kotlinx.coroutines.flow.update
  * vehicle settings change, so a finished demo trip shows up here at once.
  */
 class InsightsViewModel(
-    repository: DriveRepository = AppContainer.drive,
-    settings: StateFlow<SettingsUiState> = AppContainer.settings,
+    repository: DriveRepository,
+    settings: StateFlow<SettingsUiState>,
     private val calculator: InsightsCalculator = InsightsCalculator(),
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {

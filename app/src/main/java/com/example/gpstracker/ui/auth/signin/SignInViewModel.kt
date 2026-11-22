@@ -3,7 +3,6 @@ package com.example.gpstracker.ui.auth.signin
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.auth.AuthException
 import com.example.gpstracker.data.auth.AuthFailure
 import com.example.gpstracker.data.auth.AuthRepository
@@ -16,9 +15,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SignInViewModel @JvmOverloads constructor(
+class SignInViewModel(
     application: Application,
-    private val auth: AuthRepository = AppContainer.auth,
+    private val auth: AuthRepository,
 ) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(SignInUiState())
     val state: StateFlow<SignInUiState> = _state.asStateFlow()

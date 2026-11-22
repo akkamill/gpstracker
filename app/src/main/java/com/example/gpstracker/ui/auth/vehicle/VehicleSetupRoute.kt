@@ -3,7 +3,7 @@ package com.example.gpstracker.ui.auth.vehicle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * @param onDone called after a successful save or when the user skips
@@ -13,7 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun VehicleSetupRoute(
     onDone: () -> Unit,
     onBack: (() -> Unit)? = null,
-    viewModel: VehicleSetupViewModel = viewModel(),
+    viewModel: VehicleSetupViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val errors by viewModel.errors.collectAsStateWithLifecycle()

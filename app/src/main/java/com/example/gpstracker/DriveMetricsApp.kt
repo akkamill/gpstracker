@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gpstracker.ui.auth.SessionViewModel
@@ -31,6 +30,7 @@ import com.example.gpstracker.ui.navigation.MainGraph
 import com.example.gpstracker.ui.navigation.isTopLevel
 import com.example.gpstracker.ui.navigation.navigateToTab
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Root composable: theme, session check, scaffold with the bottom bar, the
@@ -39,7 +39,7 @@ import com.example.gpstracker.ui.theme.DriveMetricsTheme
 @Composable
 fun DriveMetricsApp() {
     DriveMetricsTheme {
-        val sessionViewModel: SessionViewModel = viewModel()
+        val sessionViewModel: SessionViewModel = koinViewModel()
         val session by sessionViewModel.session.collectAsStateWithLifecycle()
 
         // The start graph is decided once, from the first session that is not Loading.
@@ -81,7 +81,7 @@ private fun Splash() {
 @Composable
 private fun AppContent(startGraph: Any) {
     val navController = rememberNavController()
-    val crashViewModel: CrashAlertViewModel = viewModel()
+    val crashViewModel: CrashAlertViewModel = koinViewModel()
     val crash by crashViewModel.state.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination

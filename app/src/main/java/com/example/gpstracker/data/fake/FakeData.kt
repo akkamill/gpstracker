@@ -115,6 +115,7 @@ object FakeData {
     val tripsState = TripsUiState(
         weekAverageScore = trips.map { it.score }.average().toInt(),
         weekScores = trips.map { it.score }.reversed(),
+        weekTripCount = trips.size,
         sections = trips.groupBy { it.dateLabel }.toList(),
     )
 
