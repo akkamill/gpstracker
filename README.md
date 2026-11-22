@@ -98,14 +98,15 @@ ViewModels and hands each one what it needs, so tests can pass in fakes instead.
 
 | What | Where | Notes |
 | --- | --- | --- |
-| Trip history (route and events) | Room table `trips` and `trip_events` | Events are linked to their trip and deleted with it |
+| Trip history (route and events) | Room table `trips` and `trip_events` | Kept per account (or demo mode); events are deleted with their trip |
 | Road reports | Room table `road_reports` | Expired and voted-away reports are removed |
 | Accounts | Room table `accounts` | Passwords are only kept as salted PBKDF2 hashes |
 | Settings and vehicle profile | DataStore file `settings` | |
 | Who is signed in | DataStore file `session` | Only the email, never a password |
 
-On the first start the history is filled with eight weeks of demo trips on the simulator's
-routes, so Trips and Insights have something to show. The screens work with copies in
+Demo mode starts with eight weeks of demo trips on the simulator's routes, so Trips and
+Insights have something to show; a new account starts empty. A signed-in driver's trips are
+also kept on the server, so they follow the account to another phone. The screens work with copies in
 memory, and changes are written in the background, so saving never makes the app wait.
 When a table changes, the database version goes up and a migration keeps the old data;
 every version's schema is saved in `app/schemas`.
@@ -183,8 +184,18 @@ updated by the numbered scripts in `server/src/main/resources/db/migration` when
 | `GET /api/reports?lat=..&lon=..` | Active road reports within 30 km; also without an account |
 | `POST /api/reports` | Shares a road report; needs the token |
 | `POST /api/reports/{id}/vote` | Answers "still there?"; each driver counts once |
+| `GET /api/trips` | The signed-in driver's trips |
+| `PUT /api/trips/{id}` | Saves one trip; sending it again replaces it |
 
 Errors always come back as `{"code": "...", "message": "..."}`, for example `email_taken`.
+
+### Trips per account
+
+Every trip belongs to an account, or to demo mode. When a trip ends while someone is signed in,
+it is sent to the server right away; if that fails, it waits on the phone and is sent with the
+next sync (every two minutes). Signing in on another phone fetches the account's trips, and the
+Trips and Insights screens update by themselves. The demo account (`SEED_DEMO_ACCOUNT=true`)
+comes with eight weeks of demo trips.
 
 ### Shared road reports
 

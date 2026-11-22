@@ -163,7 +163,10 @@
     <string name="estimates_body">Fuel use is estimated from distance and your car\'s average consumption. Extra fuel is added for harsh acceleration, harsh braking and time spent above the speed limit. Costs use the fuel price you entered. CO₂ is calculated from estimated fuel. These are estimates, not measurements.</string>
     <string name="info_got_it">Got it</string>
 
-    <string name="guest_banner">Demo mode. Create an account to keep your trips.</string>
+    <string name="guest_banner">Demo mode with sample trips. Create an account to keep your own trips with your account.</string>
+    <string name="trip_not_found_title">Trip not found</string>
+    <string name="trip_not_found_body">This trip is not in your history. It may belong to another account.</string>
+    <string name="trip_not_found_action">Back to trips</string>
     <string name="guest_banner_action">Create account</string>
     <string name="avatar_cd">Account and settings</string>
 

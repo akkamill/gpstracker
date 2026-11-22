@@ -15,7 +15,10 @@ import com.example.gpstracker.ui.model.TripSummaryUi
 import com.example.gpstracker.ui.model.TripsUiState
 import com.example.gpstracker.ui.model.scoreBandOf
 
-/** Hand-made sample data used by previews and by the demo simulator. */
+/**
+ * Hand-made sample data for design previews, UI tests and the benchmark tests. The running app
+ * never shows it: its demo history is built from real trips (see DemoHistory in :simulator).
+ */
 object FakeData {
 
     private const val ROUTE_POINTS = 80
@@ -160,11 +163,6 @@ object FakeData {
         events = emptyList(),
         fuel = fuelFor(distanceKm = 18.2, events = emptyList(), speedingMinutes = 0.0),
         tips = emptyList(),
-    )
-
-    val tripDetails: Map<String, TripDetailUi> = mapOf(
-        tripWithEvents.summary.id to tripWithEvents,
-        perfectTrip.summary.id to perfectTrip,
     )
 
     private const val WEEKS = 8

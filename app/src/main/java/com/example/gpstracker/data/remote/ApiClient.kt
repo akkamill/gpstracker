@@ -9,6 +9,7 @@ import com.example.gpstracker.model.api.SignUpRequest
 import com.example.gpstracker.model.api.VoteRequest
 import com.example.gpstracker.model.geo.LatLon
 import com.example.gpstracker.model.reports.RoadReport
+import com.example.gpstracker.model.trip.SavedTrip
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,6 +22,7 @@ import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -60,6 +62,19 @@ class ApiClient(private val http: HttpClient, baseUrl: String) {
 
     suspend fun me(token: String): ApiResult<AccountInfo> = call {
         http.get("$base/api/me") { bearerAuth(token) }
+    }
+
+    /** The signed-in driver's trips, newest first. */
+    suspend fun trips(token: String): ApiResult<List<SavedTrip>> = call {
+        http.get("$base/api/trips") { bearerAuth(token) }
+    }
+
+    /** Saves one trip on the server; sending it again replaces it. */
+    suspend fun uploadTrip(trip: SavedTrip, token: String): ApiResult<SavedTrip> = call {
+        http.put("$base/api/trips/${trip.id}") {
+            bearerAuth(token)
+            json(trip)
+        }
     }
 
     /** Active road reports around [near] (all when null); [token] marks the driver's own ones. */

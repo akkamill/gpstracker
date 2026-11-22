@@ -1,6 +1,5 @@
-package com.example.gpstracker.data.fake
+package com.example.gpstracker.simulator.history
 
-import com.example.gpstracker.data.estimate.InsightsCalculator
 import com.example.gpstracker.domain.driving.Scoring
 import com.example.gpstracker.model.trip.SavedTrip
 import org.junit.Assert.assertEquals
@@ -8,10 +7,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DemoHistoryTest {
+    private val weekMs = 7 * 24 * 3_600_000L
     private val now = 1_700_000_000_000L
     private val trips = DemoHistory.build(now)
 
-    private fun weeksAgo(trip: SavedTrip) = ((now - trip.savedAtMs) / InsightsCalculator.WEEK_MS).toInt()
+    private fun weeksAgo(trip: SavedTrip) = ((now - trip.savedAtMs) / weekMs).toInt()
 
     @Test
     fun `eight weeks of trips in the past, newest first, with unique ids`() {

@@ -9,7 +9,6 @@ import com.example.gpstracker.data.auth.RemoteAuthRepository
 import com.example.gpstracker.data.auth.SessionStore
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.drive.TelemetryDriveRepository
-import com.example.gpstracker.data.fake.DemoHistory
 import com.example.gpstracker.data.local.DriveMetricsDatabase
 import com.example.gpstracker.data.local.RoomTripHistory
 import com.example.gpstracker.data.remote.ApiClient
@@ -24,10 +23,12 @@ import com.example.gpstracker.data.support.WebSocketChatTransport
 import com.example.gpstracker.data.telematics.DemoControls
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
+import com.example.gpstracker.data.trips.TripSync
 import com.example.gpstracker.domain.telemetry.TelemetrySource
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.domain.trip.TripHistory
 import com.example.gpstracker.model.geo.LatLon
+import com.example.gpstracker.simulator.history.DemoHistory
 import com.example.gpstracker.simulator.vehicle.CommunityReports
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.tracing.Tracing
@@ -46,6 +47,9 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -71,7 +75,8 @@ val storageModule = module {
     single { DriveMetricsDatabase.create(androidContext()) }
     single { get<DriveMetricsDatabase>().trips() }
     single { get<DriveMetricsDatabase>().reports() }
-    single<TripHistory> { RoomTripHistory(get()) }
+    single { RoomTripHistory(get()) }
+    single<TripHistory> { get<RoomTripHistory>() }
     single<SettingsRepository> { DataStoreSettingsRepository(androidContext().settingsStore, get(AppScope)) }
     single<SessionStore> { DataStoreSessionStore(androidContext().sessionStore) }
 }
@@ -88,6 +93,11 @@ val dataModule = module {
     single { ApiClient(get(), BuildConfig.SERVER_URL) }
     single { RemoteAuthRepository(get(), get(), get(AppScope)) }
     single<AuthRepository> { get<RemoteAuthRepository>() }
+    // started with the app, so a signed-in driver's trips sync without waiting for a new one
+    single(createdAtStart = true) {
+        val auth = get<RemoteAuthRepository>()
+        TripSync(get(), get<RoomTripHistory>(), auth.accountId, auth, get(AppScope)).also { it.start() }
+    }
     single { SupportChatRepository(WebSocketChatTransport(get(), BuildConfig.SERVER_URL), get<RemoteAuthRepository>(), get(AppScope)) }
 
     single { SimulatedTelemetrySource(SimulatedCar(startMs = System.currentTimeMillis())) }
@@ -117,6 +127,11 @@ val dataModule = module {
             history = get(),
             demoHistory = DemoHistory::build,
             reports = get(),
+            // each account's trips; demo mode has its own
+            owner = get<RemoteAuthRepository>().accountId
+                .map { it ?: TripHistory.GUEST }
+                .stateIn(get(AppScope), SharingStarted.Eagerly, TripHistory.GUEST),
+            onTripSaved = { get<TripSync>().requestSync() },
         ).also { it.start(get(AppScope)) }
     }
 }

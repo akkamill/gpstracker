@@ -5,12 +5,24 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TripDao {
+    /** The owner's trips, newest first; Room sends a new list after every change. */
     @Transaction
-    @Query("SELECT * FROM trips ORDER BY savedAtMs DESC")
-    suspend fun all(): List<TripWithEvents>
+    @Query("SELECT * FROM trips WHERE owner = :owner ORDER BY savedAtMs DESC")
+    fun trips(owner: String): Flow<List<TripWithEvents>>
+
+    @Transaction
+    @Query("SELECT * FROM trips WHERE owner = :owner AND synced = 0 ORDER BY savedAtMs")
+    suspend fun unsynced(owner: String): List<TripWithEvents>
+
+    @Query("SELECT id FROM trips WHERE owner = :owner")
+    suspend fun ids(owner: String): List<String>
+
+    @Query("UPDATE trips SET synced = 1 WHERE id IN (:ids)")
+    suspend fun markSynced(ids: List<String>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrips(trips: List<TripEntity>)

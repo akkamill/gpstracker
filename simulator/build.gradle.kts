@@ -21,6 +21,8 @@ kotlin {
 
 dependencies {
     api(project(":telematics"))
+    // demo trip history is scored with the real driving rules
+    implementation(project(":domain"))
     api(libs.kotlinx.coroutines.core)
     implementation(project(":tracing"))
     testImplementation(libs.junit)
