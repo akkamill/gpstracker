@@ -3,8 +3,6 @@ package com.example.gpstracker.testing
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
-import com.example.gpstracker.data.local.AccountDao
-import com.example.gpstracker.data.local.AccountEntity
 import com.example.gpstracker.data.local.ReportDao
 import com.example.gpstracker.data.local.RoadReportEntity
 import kotlinx.coroutines.CompletableDeferred
@@ -13,18 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onStart
 
 /** Stand-ins for the database and preference files, so storage logic runs in plain unit tests. */
-class FakeAccountDao : AccountDao {
-    val rows = LinkedHashMap<String, AccountEntity>()
-
-    override suspend fun find(email: String): AccountEntity? = rows[email]
-
-    override suspend fun insert(account: AccountEntity): Long {
-        if (account.email in rows) return -1
-        rows[account.email] = account
-        return rows.size.toLong()
-    }
-}
-
 class FakeReportDao(initial: List<RoadReportEntity> = emptyList()) : ReportDao {
     var rows: List<RoadReportEntity> = initial
     var writes = 0

@@ -1,4 +1,4 @@
-package com.example.gpstracker.data.auth
+package com.example.gpstracker.domain.auth
 
 import java.security.MessageDigest
 import java.security.SecureRandom

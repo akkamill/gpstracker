@@ -27,8 +27,8 @@ val detektCli: Configuration = configurations.create("detektCli")
 /** Minimum line coverage of the pure-Kotlin modules, checked by koverVerify. */
 val minCoveragePercent = 80
 
-/** Modules whose test coverage is measured: all the pure-Kotlin logic. */
-val coveredModules = listOf(":tracing", ":model", ":telematics", ":domain", ":simulator")
+/** Modules whose test coverage is measured: all the pure-Kotlin logic and the server. */
+val coveredModules = listOf(":tracing", ":model", ":telematics", ":domain", ":simulator", ":server")
 
 dependencies {
     ktlintCli(libs.ktlint.cli) {

@@ -22,6 +22,8 @@ object AuthMessages {
         when (failure) {
             AuthFailure.InvalidCredentials -> R.string.error_credentials
             AuthFailure.EmailTaken -> R.string.error_email_taken
+            AuthFailure.ServerUnreachable -> R.string.error_server_unreachable
+            AuthFailure.ServerError -> R.string.error_server
         },
     )
 }

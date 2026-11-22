@@ -11,7 +11,6 @@ import com.example.gpstracker.model.reports.RoadReport
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -50,14 +49,5 @@ class DatabaseTest {
         db.reports().replaceAll(listOf(report("a"), report("b")).map { it.toEntity() })
         db.reports().replaceAll(listOf(report("b")).map { it.toEntity() })
         assertEquals(listOf(report("b")), db.reports().all().map { it.toModel() })
-    }
-
-    @Test
-    fun anEmailCanOnlyBeRegisteredOnce() = runTest {
-        val account = AccountEntity("demo@drivemetrics.app", "Demo", "hash", "salt", 0)
-        assertEquals(1L, db.accounts().insert(account))
-        assertEquals(-1L, db.accounts().insert(account.copy(name = "Someone else")))
-        assertEquals("Demo", db.accounts().find("demo@drivemetrics.app")?.name)
-        assertNull(db.accounts().find("nobody@example.com"))
     }
 }

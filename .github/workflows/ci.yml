@@ -1,7 +1,7 @@
 name: CI
 
 # Runs on every push and pull request: code style, code checks, all unit tests,
-# test coverage and the debug app build. A red result means something to fix.
+# test coverage, the debug app build and the server image. A red result means something to fix.
 on:
   push:
   pull_request:
@@ -40,13 +40,19 @@ jobs:
         run: >
           ./gradlew
           :tracing:test :model:test :telematics:test :domain:test :simulator:test
-          :app:testDebugUnitTest
+          :server:test :app:testDebugUnitTest
 
       - name: Test coverage (at least 80 % of lines)
         run: ./gradlew koverVerify koverHtmlReport koverXmlReport
 
       - name: Build the app
         run: ./gradlew :app:assembleDebug
+
+      # The server's database tests above ran against a real PostgreSQL in Docker.
+      - name: Build the server image
+        run: |
+          ./gradlew :server:installDist
+          docker compose build server
 
       - name: Keep the reports
         if: always()
