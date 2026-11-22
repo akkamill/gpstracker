@@ -10,6 +10,7 @@ import com.example.gpstracker.model.api.SignUpRequest
 import com.example.gpstracker.model.api.VoteRequest
 import com.example.gpstracker.model.reports.ReportSource
 import com.example.gpstracker.model.reports.RoadReport
+import com.example.gpstracker.model.trip.SavedTrip
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -48,6 +49,9 @@ class FakeServer {
     /** Votes received, as "id:stillThere". */
     val votes = mutableListOf<String>()
 
+    /** Each account's trips, by email. */
+    val trips = HashMap<String, LinkedHashMap<String, SavedTrip>>()
+
     // answers on the calling thread, so tests running in virtual time see every call finish
     private val engine = MockEngine(
         MockEngineConfig().apply {
@@ -83,6 +87,8 @@ class FakeServer {
             path == "/api/reports" && method == HttpMethod.Get -> ok(reports.values.map { it.seenBy(email) })
 
             path == "/api/reports" -> share(body, email)
+
+            path == "/api/trips" || path.startsWith("/api/trips/") -> trips(method, body, email)
 
             path.startsWith(
                 "/api/reports/",
@@ -153,6 +159,15 @@ class FakeServer {
         }
         reports[id] = voted
         return ok(voted)
+    }
+
+    private fun MockRequestHandleScope.trips(method: HttpMethod, body: String, email: String?): HttpResponseData {
+        if (email == null || email !in accounts) return error(HttpStatusCode.Unauthorized, ApiError.UNAUTHORIZED)
+        val mine = trips.getOrPut(email) { LinkedHashMap() }
+        if (method == HttpMethod.Get) return ok(mine.values.sortedByDescending { it.savedAtMs })
+        val trip = Json.decodeFromString<SavedTrip>(body)
+        mine[trip.id] = trip
+        return ok(trip)
     }
 
     private fun RoadReport.seenBy(email: String?) = copy(

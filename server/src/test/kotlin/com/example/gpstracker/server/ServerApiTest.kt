@@ -15,6 +15,7 @@ import com.example.gpstracker.server.reports.InMemoryReportStore
 import com.example.gpstracker.server.reports.ReportService
 import com.example.gpstracker.server.support.InMemorySupportRepository
 import com.example.gpstracker.server.support.SupportHub
+import com.example.gpstracker.server.trips.InMemoryTripStore
 import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.client.HttpClient
@@ -62,6 +63,7 @@ class ServerApiTest {
                     tokens = tokens,
                     databaseUp = { databaseUp },
                     reports = ReportService(InMemoryReportStore()),
+                    trips = InMemoryTripStore(),
                     support = SupportHub(InMemorySupportRepository()),
                     agentKey = null,
                 ),

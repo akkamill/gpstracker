@@ -1,5 +1,6 @@
 package com.example.gpstracker.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -12,10 +13,17 @@ import com.example.gpstracker.model.geo.LatLon
 import com.example.gpstracker.model.trip.SavedTrip
 import com.example.gpstracker.model.trip.Trip
 
-/** One finished trip. The route is stored as one JSON column; events have their own table. */
-@Entity(tableName = "trips", indices = [Index("savedAtMs")])
+/**
+ * One finished trip. The route is stored as one JSON column; events have their own table.
+ *
+ * @property owner the account the trip belongs to, or "guest" for demo mode
+ * @property synced true once the server has the trip (always false for demo mode)
+ */
+@Entity(tableName = "trips", indices = [Index("savedAtMs"), Index("owner", "savedAtMs")])
 data class TripEntity(
     @PrimaryKey val id: String,
+    @ColumnInfo(defaultValue = "guest") val owner: String,
+    @ColumnInfo(defaultValue = "0") val synced: Boolean,
     val savedAtMs: Long,
     val startMs: Long,
     val endMs: Long,
@@ -57,8 +65,10 @@ data class TripWithEvents(
     @Relation(parentColumn = "id", entityColumn = "tripId") val events: List<TripEventEntity>,
 )
 
-fun SavedTrip.toEntity() = TripEntity(
+fun SavedTrip.toEntity(owner: String, synced: Boolean) = TripEntity(
     id = id,
+    owner = owner,
+    synced = synced,
     savedAtMs = savedAtMs,
     startMs = trip.startMs,
     endMs = trip.endMs,

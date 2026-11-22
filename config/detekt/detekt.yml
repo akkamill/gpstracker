@@ -48,7 +48,8 @@ style:
     ignoreAnnotated: ['Composable', 'Preview']
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/fake/**', '**/theme/**']
+    # Hand-tuned demo data (fake/, and the demo trip history in the simulator) reads better with its numbers inline.
+    excludes: ['**/test/**', '**/androidTest/**', '**/fake/**', '**/theme/**', '**/simulator/history/**']
   UnusedPrivateMember:
     # Previews are used by Android Studio, not by code.
     ignoreAnnotated: ['Preview']

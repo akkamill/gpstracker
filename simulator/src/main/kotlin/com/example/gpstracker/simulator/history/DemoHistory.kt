@@ -1,6 +1,5 @@
-package com.example.gpstracker.data.fake
+package com.example.gpstracker.simulator.history
 
-import com.example.gpstracker.data.estimate.InsightsCalculator
 import com.example.gpstracker.domain.driving.DrivingRules
 import com.example.gpstracker.domain.driving.Scoring
 import com.example.gpstracker.model.driving.DrivingEvent
@@ -21,7 +20,7 @@ import com.example.gpstracker.simulator.road.Route
 object DemoHistory {
     private const val WEEKS = 8
     private const val GAP_WEEK = 2
-    private const val WEEK_MS = InsightsCalculator.WEEK_MS
+    private const val WEEK_MS = 7 * 24 * 3_600_000L
     private const val ROUTE_STEP_M = 50
     private const val MS_PER_HOUR = 3_600_000.0
     private const val SPEEDING_OVER_KMH = 16.0
@@ -47,7 +46,8 @@ object DemoHistory {
         DrivingEventType.HarshAcceleration to 3.6,
     )
 
-    fun build(nowMs: Long): List<SavedTrip> {
+    /** @param idPrefix keeps the ids apart when several owners get demo trips */
+    fun build(nowMs: Long, idPrefix: String = "demo"): List<SavedTrip> {
         val trips = mutableListOf<SavedTrip>()
         var seed = 7
         for (week in 0 until WEEKS) {
@@ -60,7 +60,7 @@ object DemoHistory {
                 val route = if (index % 2 == 0) Kaunas.toAkropolis else Kaunas.toZaliakalnis
                 // early weeks have up to six events a trip, the last weeks mostly none
                 val events = ((WEEKS - 1 - week) * 2 / 3 + seed % 3 - 1).coerceAtLeast(0)
-                trips += SavedTrip(id = "demo-$week-$index", savedAtMs = endMs, trip = trip(route, endMs, events, seed))
+                trips += SavedTrip(id = "$idPrefix-$week-$index", savedAtMs = endMs, trip = trip(route, endMs, events, seed))
             }
         }
         return trips.sortedByDescending { it.savedAtMs }

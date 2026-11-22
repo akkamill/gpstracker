@@ -15,6 +15,7 @@ import com.example.gpstracker.server.auth.Tokens
 import com.example.gpstracker.server.driveMetrics
 import com.example.gpstracker.server.support.InMemorySupportRepository
 import com.example.gpstracker.server.support.SupportHub
+import com.example.gpstracker.server.trips.InMemoryTripStore
 import com.example.gpstracker.simulator.vehicle.CommunityReports
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -55,6 +56,7 @@ class ReportApiTest {
                     databaseUp = { true },
                     support = SupportHub(InMemorySupportRepository()),
                     reports = service,
+                    trips = InMemoryTripStore(),
                     agentKey = null,
                 ),
             )

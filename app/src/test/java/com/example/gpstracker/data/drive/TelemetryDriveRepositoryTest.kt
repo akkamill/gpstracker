@@ -1,12 +1,12 @@
 package com.example.gpstracker.data.drive
 
-import com.example.gpstracker.data.fake.DemoHistory
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.domain.trip.InMemoryTripHistory
 import com.example.gpstracker.domain.trip.TripHistory
 import com.example.gpstracker.model.trip.SavedTrip
+import com.example.gpstracker.simulator.history.DemoHistory
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.ui.model.ConnectionStatus
 import com.example.gpstracker.ui.model.DriveUiState
@@ -16,6 +16,7 @@ import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.VehicleState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -43,6 +44,8 @@ class TelemetryDriveRepositoryTest {
         seconds: Int,
         history: TripHistory = InMemoryTripHistory(),
         demo: (Long) -> List<SavedTrip> = DemoHistory::build,
+        owner: MutableStateFlow<String> = MutableStateFlow(TripHistory.GUEST),
+        onTripSaved: () -> Unit = {},
     ): Run {
         val source = SimulatedTelemetrySource(SimulatedCar(startMs = 1_700_000_000_000L))
         val repository = TelemetryDriveRepository(
@@ -52,6 +55,8 @@ class TelemetryDriveRepositoryTest {
             clock = { testScheduler.currentTime },
             history = history,
             demoHistory = demo,
+            owner = owner,
+            onTripSaved = onTripSaved,
         )
         val states = mutableListOf<DriveUiState>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { repository.drive.toList(states) }
@@ -140,22 +145,67 @@ class TelemetryDriveRepositoryTest {
     fun `finished trips are saved to the history and are there after a restart`() = runTest {
         val history = InMemoryTripHistory()
         val saved = run(seconds = DRIVE_THERE_S, history = history).states.mapNotNull { it.tripJustSaved }.first()
-        assertEquals(saved.id, history.all().first().id)
+        assertEquals(saved.id, history.guestTrips().first().id)
 
         // the next start loads it; the demo trips are not added again
         val restarted = run(seconds = 1, history = history, demo = { error("history is not empty") })
         assertEquals(saved.id, restarted.repository.trips.value.sections.first().second.first().id)
         assertNotNull(restarted.repository.tripDetail(saved.id))
-        assertEquals(history.all().size, restarted.repository.records.value.size)
+        assertEquals(history.guestTrips().size, restarted.repository.records.value.size)
     }
 
     @Test
     fun `an empty history is filled with the demo trips once`() = runTest {
         val history = InMemoryTripHistory()
         val r = run(seconds = 1, history = history)
-        assertEquals(DemoHistory.build(0).size, history.all().size)
+        assertEquals(DemoHistory.build(0).size, history.guestTrips().size)
         assertEquals(DemoHistory.build(0).first().id, r.states.last().lastTrip?.id)
     }
+
+    @Test
+    fun `a new account starts with an empty history, without demo trips`() = runTest {
+        val history = InMemoryTripHistory()
+        val r = run(seconds = 1, history = history, owner = MutableStateFlow("ona"))
+        assertTrue(r.repository.trips.value.sections.isEmpty())
+        assertTrue(r.repository.records.value.isEmpty())
+        assertTrue(history.trips("ona").first().isEmpty())
+    }
+
+    @Test
+    fun `each account sees its own trips, and a trip is saved for whoever is signed in`() = runTest {
+        val history = InMemoryTripHistory()
+        val owner = MutableStateFlow("ona")
+        var syncRequests = 0
+        val r = run(seconds = DRIVE_THERE_S, history = history, owner = owner, onTripSaved = { syncRequests++ })
+        val saved = r.states.mapNotNull { it.tripJustSaved }.first()
+        assertEquals(listOf(saved.id), history.trips("ona").first().map { it.id })
+        assertEquals(1, syncRequests)
+
+        // signing out to demo mode shows the demo trips, not Ona's
+        owner.value = TripHistory.GUEST
+        advanceTimeBy(1_000)
+        val guestIds = r.repository.trips.value.sections.flatMap { it.second }.map { it.id }
+        assertTrue(saved.id !in guestIds)
+        assertEquals(DemoHistory.build(0).size, guestIds.size)
+        assertEquals(null, r.repository.tripDetail(saved.id))
+
+        // and back: Ona's trip is there again
+        owner.value = "ona"
+        advanceTimeBy(1_000)
+        assertNotNull(r.repository.tripDetail(saved.id))
+    }
+
+    @Test
+    fun `trips that arrive in the history later show up by themselves`() = runTest {
+        val history = InMemoryTripHistory()
+        val r = run(seconds = 1, history = history, owner = MutableStateFlow("ona"))
+        val fromServer = DemoHistory.build(0, idPrefix = "server").take(2)
+        history.save("ona", fromServer)
+        advanceTimeBy(1_000)
+        assertEquals(fromServer.map { it.id }, r.repository.trips.value.sections.flatMap { it.second }.map { it.id })
+    }
+
+    private suspend fun TripHistory.guestTrips() = trips(TripHistory.GUEST).first()
 
     private companion object {
         /** Enough for: connect, 30 s parked, the drive there (about a minute at ×10) and its end. */

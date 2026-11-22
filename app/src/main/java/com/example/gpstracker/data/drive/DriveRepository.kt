@@ -2,7 +2,6 @@ package com.example.gpstracker.data.drive
 
 import com.example.gpstracker.data.estimate.TripRecord
 import com.example.gpstracker.data.estimate.toNumbers
-import com.example.gpstracker.data.fake.DemoHistory
 import com.example.gpstracker.data.reports.RoadReportService
 import com.example.gpstracker.domain.driving.Scoring
 import com.example.gpstracker.domain.telemetry.TelemetrySource
@@ -14,6 +13,7 @@ import com.example.gpstracker.model.telemetry.TelemetryPoint
 import com.example.gpstracker.model.trip.SavedTrip
 import com.example.gpstracker.model.trip.Trip
 import com.example.gpstracker.model.trip.VehicleState
+import com.example.gpstracker.simulator.history.DemoHistory
 import com.example.gpstracker.tracing.SpanContext
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.ConnectionStatus
@@ -32,6 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -52,9 +53,11 @@ interface DriveRepository {
  * publishes what the screens show. It does not care whether the samples come from the
  * simulated tracker or, later, from the server.
  *
- * Finished trips are kept in [history] (the phone's database in the app). The history is
- * loaded once at start; when it is empty, [demoHistory] fills it so Trips and Insights are
- * not empty in a demo. A finished trip shows up at once and is written in the background.
+ * Finished trips are kept in [history] (the phone's database in the app), per [owner]: the
+ * signed-in account, or demo mode. The screens follow the history, so trips that arrive from
+ * the server show up by themselves. When demo mode's history is empty, [demoHistory] fills it
+ * so Trips and Insights are not empty in a demo; a new account starts empty. A finished trip
+ * shows up at once, is written in the background, and [onTripSaved] is told (to sync it).
  *
  * @param connectedStatus how a working connection is labelled ("Demo replay" or "Live")
  */
@@ -68,6 +71,8 @@ class TelemetryDriveRepository(
     private val history: TripHistory = InMemoryTripHistory(),
     private val demoHistory: (nowMs: Long) -> List<SavedTrip> = DemoHistory::build,
     private val reports: RoadReportService? = null,
+    private val owner: StateFlow<String> = MutableStateFlow(TripHistory.GUEST),
+    private val onTripSaved: () -> Unit = {},
 ) : DriveRepository {
     private val lock = Any()
     private val tracer = Tracing.tracer("app")
@@ -75,7 +80,10 @@ class TelemetryDriveRepository(
 
     private var snapshot = DriveSnapshot()
 
-    /** All finished trips, newest first, and what the screens show of them. */
+    /** Whose trips are shown: an account id, or demo mode. */
+    private var currentOwner: String = TripHistory.GUEST
+
+    /** All of the owner's finished trips, newest first, and what the screens show of them. */
     private var saved: List<SavedTrip> = emptyList()
     private var summaries: List<TripSummaryUi> = emptyList()
     private var summariesDay = 0L
@@ -104,7 +112,7 @@ class TelemetryDriveRepository(
     /** Starts listening in [scope]. Call once. */
     fun start(scope: CoroutineScope) {
         this.scope = scope
-        scope.launch { loadHistory() }
+        scope.launch { owner.collectLatest(::followHistory) }
         scope.launch {
             settings.map { it.speedTolerance to it.tripEndAfterMinutes }.distinctUntilChanged().collect { (tolerance, endAfter) ->
                 synchronized(lock) {
@@ -144,30 +152,45 @@ class TelemetryDriveRepository(
         publish()
     }
 
-    private suspend fun loadHistory() {
-        var stored = history.all()
-        if (stored.isEmpty()) {
-            stored = demoHistory(clock())
-            history.save(stored)
-            tracer.info("demo trips added to the history", "trips" to stored.size)
-        }
+    /** Shows [who]'s trips, and keeps showing them as the history changes, until the owner changes. */
+    private suspend fun followHistory(who: String) {
         synchronized(lock) {
-            // a trip finished while loading is kept
-            saved = (saved + stored).distinctBy { it.id }.sortedByDescending { it.savedAtMs }
+            currentOwner = who
+            saved = emptyList()
             refreshHistory()
             publish()
         }
-        tracer.info("trip history loaded", "trips" to stored.size)
+        var first = true
+        history.trips(who).collect { stored ->
+            if (first && stored.isEmpty() && who == TripHistory.GUEST) {
+                val demo = demoHistory(clock())
+                history.save(who, demo)
+                tracer.info("demo trips added to the history", "trips" to demo.size)
+            }
+            if (first) tracer.info("trip history loaded", "trips" to stored.size, "demo" to (who == TripHistory.GUEST))
+            first = false
+            synchronized(lock) {
+                // a trip that has just finished is kept even before the history has it
+                val storedIds = stored.map { it.id }.toSet()
+                saved = (stored + saved.filter { it.id !in storedIds }).sortedByDescending { it.savedAtMs }
+                refreshHistory()
+                publish()
+            }
+        }
     }
 
     private fun save(trip: Trip) {
         val entry = SavedTrip(id = "trip-${trip.startMs}", savedAtMs = clock(), trip = trip)
+        val who = currentOwner
         saved = listOf(entry) + saved
         refreshHistory()
         savedTrip = summaries.first()
         savedAtMs = entry.savedAtMs
         latestEvent = null
-        scope?.launch { history.save(listOf(entry)) }
+        scope?.launch {
+            history.save(who, listOf(entry))
+            onTripSaved()
+        }
         tracer.info("trip saved", "id" to entry.id, "route" to savedTrip?.fromTo, "score" to trip.score)
     }
 

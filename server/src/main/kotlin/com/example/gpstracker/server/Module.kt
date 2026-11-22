@@ -11,6 +11,8 @@ import com.example.gpstracker.server.reports.roadReports
 import com.example.gpstracker.server.support.SupportHub
 import com.example.gpstracker.server.support.agentChat
 import com.example.gpstracker.server.support.driverChat
+import com.example.gpstracker.server.trips.TripStore
+import com.example.gpstracker.server.trips.trips
 import com.example.gpstracker.tracing.Tracing
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -48,6 +50,7 @@ class ServerDependencies(
     val databaseUp: () -> Boolean,
     val support: SupportHub,
     val reports: ReportService,
+    val trips: TripStore,
     /** The support team's key for the chat page; null turns the page's chat off. */
     val agentKey: String?,
 )
@@ -62,6 +65,7 @@ class ServerDependencies(
  * - `WS   /api/support/chat`    a driver's support chat (needs the token)
  * - `WS   /api/support/agent`   the support team's side of all chats (needs the team's key)
  * - `/api/reports`              shared road reports (see ReportRoutes)
+ * - `/api/trips`                each driver's trip history (see TripRoutes)
  * - `GET  /support`             the support team's web page
  */
 fun Application.driveMetrics(deps: ServerDependencies) {
@@ -115,6 +119,7 @@ fun Application.driveMetrics(deps: ServerDependencies) {
             }
             agentChat(deps.support, deps.agentKey)
             roadReports(deps.reports, TOKEN_AUTH)
+            trips(deps.trips, TOKEN_AUTH)
         }
         staticResources("/support", "support")
     }

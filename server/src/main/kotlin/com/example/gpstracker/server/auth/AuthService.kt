@@ -86,6 +86,9 @@ class AuthService(
         return created
     }
 
+    /** The demo account's id, once it exists. */
+    suspend fun demoAccountId(): UUID? = accounts.findByEmail(DemoAccount.EMAIL)?.id
+
     suspend fun signIn(request: SignInRequest): AuthResponse {
         val account = accounts.findByEmail(normalize(request.email))
         // an unknown email takes as long as a wrong password, so timing does not reveal who has an account

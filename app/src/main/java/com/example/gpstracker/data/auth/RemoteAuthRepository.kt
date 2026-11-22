@@ -42,6 +42,11 @@ class RemoteAuthRepository(
 
     override fun currentToken(): String? = token
 
+    private val _accountId = MutableStateFlow<String?>(null)
+
+    /** The signed-in account's id; null in demo mode or when signed out. Trips are kept per account. */
+    val accountId: StateFlow<String?> = _accountId.asStateFlow()
+
     init {
         scope.launch {
             val saved = restore()
@@ -58,6 +63,7 @@ class RemoteAuthRepository(
     override fun continueAsGuest() {
         tracer.info("demo started as guest")
         token = null
+        _accountId.value = null
         _session.value = SessionState.Guest
         scope.launch { sessions.save(SavedSession.Guest) }
     }
@@ -65,6 +71,7 @@ class RemoteAuthRepository(
     override fun signOut() {
         tracer.info("signed out")
         token = null
+        _accountId.value = null
         _session.value = SessionState.SignedOut
         scope.launch { sessions.save(SavedSession.None) }
     }
@@ -75,6 +82,7 @@ class RemoteAuthRepository(
             val saved = SavedSession.SignedIn(auth.account.id, auth.account.name, auth.account.email, auth.token, auth.expiresAtMs)
             sessions.save(saved)
             token = auth.token
+            _accountId.value = saved.accountId
             _session.value = SessionState.SignedIn(saved.name, saved.email)
             tracer.info(done)
             Result.success(Unit)
@@ -104,7 +112,10 @@ class RemoteAuthRepository(
             saved is SavedSession.SignedIn && saved.expiresAtMs > clock() -> SessionState.SignedIn(saved.name, saved.email)
             else -> SessionState.SignedOut
         }
-        if (saved is SavedSession.SignedIn && state is SessionState.SignedIn) token = saved.token
+        if (saved is SavedSession.SignedIn && state is SessionState.SignedIn) {
+            token = saved.token
+            _accountId.value = saved.accountId
+        }
         if (saved is SavedSession.SignedIn && state == SessionState.SignedOut) sessions.save(SavedSession.None)
         _session.value = state
         tracer.info("session restored", "state" to state.javaClass.simpleName)

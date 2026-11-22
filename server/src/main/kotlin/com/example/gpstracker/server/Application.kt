@@ -8,6 +8,8 @@ import com.example.gpstracker.server.reports.PostgresReportStore
 import com.example.gpstracker.server.reports.ReportService
 import com.example.gpstracker.server.support.PostgresSupportRepository
 import com.example.gpstracker.server.support.SupportHub
+import com.example.gpstracker.server.trips.PostgresTripStore
+import com.example.gpstracker.simulator.history.DemoHistory
 import com.example.gpstracker.simulator.vehicle.CommunityReports
 import com.example.gpstracker.tracing.ConsoleSink
 import com.example.gpstracker.tracing.Tracing
@@ -22,6 +24,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+
+/** The demo account, with eight weeks of demo trips the first time. */
+private suspend fun addDemoAccount(auth: AuthService, trips: PostgresTripStore) {
+    auth.addDemoAccount()
+    val id = auth.demoAccountId() ?: return
+    if (trips.count(id) == 0) {
+        val history = DemoHistory.build(System.currentTimeMillis(), idPrefix = "demo-account")
+        history.forEach { trips.save(id, it) }
+        Tracing.tracer("server").info("demo trips added", "trips" to history.size)
+    }
+}
 
 private val DEMO_REPORT_CHECK = 10.minutes
 
@@ -48,13 +61,15 @@ fun main() {
 
     val tokens = Tokens(config.jwtSecret, TimeUnit.DAYS.toMillis(config.tokenLifetimeDays))
     val auth = AuthService(PostgresAccountRepository(dataSource), tokens)
-    if (config.seedDemoAccount) runBlocking { auth.addDemoAccount() }
+    val tripStore = PostgresTripStore(dataSource)
+    if (config.seedDemoAccount) runBlocking { addDemoAccount(auth, tripStore) }
     val deps = ServerDependencies(
         auth = auth,
         tokens = tokens,
         databaseUp = { Database.isUp(dataSource) },
         support = SupportHub(PostgresSupportRepository(dataSource)),
         reports = ReportService(PostgresReportStore(dataSource)),
+        trips = tripStore,
         agentKey = config.supportAgentKey,
     )
     if (config.seedDemoReports) keepDemoReports(deps.reports)
