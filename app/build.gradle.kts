@@ -19,6 +19,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // The project's server. For the server in Docker on this computer, run
+        // "adb reverse tcp:8080 tcp:8080" once per device start: the device's localhost:8080 then
+        // leads to this computer, for the emulator and a USB phone alike. (Android 17 blocks apps
+        // from local network addresses such as 10.0.2.2 without an extra permission.)
+        // For another server, build with -PserverUrl=https://...
+        val serverUrl = providers.gradleProperty("serverUrl").getOrElse("http://localhost:8080")
+        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
 
     buildTypes {
@@ -73,11 +81,18 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(platform(libs.ktor.bom))
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(platform(libs.koin.bom))
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit4)
+    testImplementation(platform(libs.ktor.bom))
+    testImplementation(libs.ktor.client.mock)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))

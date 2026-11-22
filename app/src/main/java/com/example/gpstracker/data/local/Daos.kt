@@ -48,13 +48,3 @@ interface ReportDao {
         insertAll(reports)
     }
 }
-
-@Dao
-interface AccountDao {
-    @Query("SELECT * FROM accounts WHERE email = :email")
-    suspend fun find(email: String): AccountEntity?
-
-    /** Returns -1 when an account with this email already exists. */
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(account: AccountEntity): Long
-}

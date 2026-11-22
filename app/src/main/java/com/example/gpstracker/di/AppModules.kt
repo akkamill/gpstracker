@@ -2,15 +2,17 @@ package com.example.gpstracker.di
 
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.gpstracker.BuildConfig
 import com.example.gpstracker.data.auth.AuthRepository
 import com.example.gpstracker.data.auth.DataStoreSessionStore
-import com.example.gpstracker.data.auth.LocalAuthRepository
+import com.example.gpstracker.data.auth.RemoteAuthRepository
 import com.example.gpstracker.data.auth.SessionStore
 import com.example.gpstracker.data.drive.DriveRepository
 import com.example.gpstracker.data.drive.TelemetryDriveRepository
 import com.example.gpstracker.data.fake.DemoHistory
 import com.example.gpstracker.data.local.DriveMetricsDatabase
 import com.example.gpstracker.data.local.RoomTripHistory
+import com.example.gpstracker.data.remote.ApiClient
 import com.example.gpstracker.data.reports.ReportRepository
 import com.example.gpstracker.data.reports.RoadReportService
 import com.example.gpstracker.data.reports.StoredReportRepository
@@ -64,7 +66,6 @@ val storageModule = module {
     single { DriveMetricsDatabase.create(androidContext()) }
     single { get<DriveMetricsDatabase>().trips() }
     single { get<DriveMetricsDatabase>().reports() }
-    single { get<DriveMetricsDatabase>().accounts() }
     single<TripHistory> { RoomTripHistory(get()) }
     single<SettingsRepository> { DataStoreSettingsRepository(androidContext().settingsStore, get(AppScope)) }
     single<SessionStore> { DataStoreSessionStore(androidContext().sessionStore) }
@@ -78,7 +79,8 @@ val dataModule = module {
         val onError = CoroutineExceptionHandler { _, error -> tracer.error("background work failed", error) }
         CoroutineScope(SupervisorJob() + Dispatchers.Default + onError)
     }
-    single<AuthRepository> { LocalAuthRepository(get(), get(), get(AppScope)) }
+    single { ApiClient(ApiClient.httpClient(), BuildConfig.SERVER_URL) }
+    single<AuthRepository> { RemoteAuthRepository(get(), get(), get(AppScope)) }
 
     single { SimulatedTelemetrySource(SimulatedCar(startMs = System.currentTimeMillis())) }
     single<TelemetrySource> { get<SimulatedTelemetrySource>() }

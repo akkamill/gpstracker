@@ -201,6 +201,8 @@
     <string name="error_confirm">Passwords do not match.</string>
     <string name="error_credentials">Email or password is incorrect.</string>
     <string name="error_email_taken">An account with this email already exists.</string>
+    <string name="error_server_unreachable">Can\'t reach the DriveMetrics server. Check your connection and try again.</string>
+    <string name="error_server">The server could not do this right now. Try again in a moment.</string>
     <string name="error_consumption">Enter a value between 2.0 and 25.0.</string>
     <string name="error_price">Enter a price above 0.</string>
     <string name="error_monthly">Enter a distance above 0.</string>
