@@ -180,8 +180,21 @@ updated by the numbered scripts in `server/src/main/resources/db/migration` when
 | `WS /api/support/chat` | A driver's support chat (WebSocket); needs the token |
 | `WS /api/support/agent?key=...` | The support team's side of every chat; needs the team's key |
 | `GET /support` | The support team's web page |
+| `GET /api/reports?lat=..&lon=..` | Active road reports within 30 km; also without an account |
+| `POST /api/reports` | Shares a road report; needs the token |
+| `POST /api/reports/{id}/vote` | Answers "still there?"; each driver counts once |
 
 Errors always come back as `{"code": "...", "message": "..."}`, for example `email_taken`.
+
+### Shared road reports
+
+Reports made while signed in go to the server, and every 30 seconds the app fetches the reports
+around the car. The server uses the same lifetimes and vote rules as the app (`ReportRules` in
+`:domain`), and never tells other drivers who made a report. Warnings never wait for the network:
+the app works on its own copy, and without a connection reports and answers wait on the phone
+until the next try. In demo mode reports stay on the phone, but other drivers' reports still
+arrive. With `SEED_DEMO_REPORTS=true` the server keeps four reports of "other drivers" along
+the demo routes, so every demo drive meets some.
 
 ### Support chat
 
