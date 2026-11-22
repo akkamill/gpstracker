@@ -13,6 +13,7 @@ money wasted by harsh driving, and compares you with a simulated benchmark drive
 - **Trips**: history with scores, and trip details with events, fuel estimate and tips.
 - **Insights**: your score against a simulated benchmark, and fuel and money estimates.
 - **Account**: sign in, sign up or try the demo; vehicle settings; crash alert demo.
+- **Support**: a live chat with the support team, who answer from a web page.
 
 Trips start and end by themselves from the car's data, so there is no start or end button.
 For now the data comes from a built-in car simulator, so the whole app works without a car,
@@ -176,8 +177,24 @@ updated by the numbered scripts in `server/src/main/resources/db/migration` when
 | `POST /api/auth/sign-up` | Creates an account (name, email, password); returns a token |
 | `POST /api/auth/sign-in` | Returns a token for the right email and password |
 | `GET /api/me` | The signed-in account; needs `Authorization: Bearer <token>` |
+| `WS /api/support/chat` | A driver's support chat (WebSocket); needs the token |
+| `WS /api/support/agent?key=...` | The support team's side of every chat; needs the team's key |
+| `GET /support` | The support team's web page |
 
 Errors always come back as `{"code": "...", "message": "..."}`, for example `email_taken`.
+
+### Support chat
+
+Drivers open **Settings → Chat with support** (an account is needed, so the team knows who
+writes). The support team opens <http://localhost:8080/support> in a browser and enters the
+support key (`local-support-key` locally, `SUPPORT_AGENT_KEY` in `compose.yaml`). They see every
+conversation, the ones waiting for an answer marked, and answer in real time; the app shows
+whether the team is online.
+
+Both sides talk over a WebSocket with small JSON events such as
+`{"type":"send","text":"...","clientId":"..."}` (see `model/.../api/SupportApi.kt`). Messages
+are saved in PostgreSQL. A message written without a connection waits on the phone and is
+sent when the connection is back; the server stores each message once, even if it arrives twice.
 
 ## Run the app
 
