@@ -3,7 +3,6 @@ package com.example.gpstracker.data.settings
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.gpstracker.testing.FakePreferencesStore
-import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.FuelType
 import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.VehicleProfileUi
@@ -15,8 +14,6 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsStorageTest {
     private val changed = SettingsUiState(
-        dataSource = DataSource.Live,
-        serverUrl = "wss://example.org/telemetry",
         speedTolerance = 10,
         tripEndAfterMinutes = 2,
         crashDetectionEnabled = false,

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -43,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gpstracker.R
@@ -52,7 +50,6 @@ import com.example.gpstracker.data.fake.PreviewStates
 import com.example.gpstracker.ui.auth.components.PrimaryButton
 import com.example.gpstracker.ui.auth.initialsOf
 import com.example.gpstracker.ui.components.InfoBottomSheet
-import com.example.gpstracker.ui.model.DataSource
 import com.example.gpstracker.ui.model.FuelType
 import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.VehicleProfileUi
@@ -60,9 +57,6 @@ import com.example.gpstracker.ui.theme.DriveColors
 import com.example.gpstracker.ui.theme.DriveMetricsTheme
 
 private val TOLERANCE_OPTIONS = listOf(0, 5, 10)
-
-/** True when [url] is a WebSocket address. */
-fun isValidServerUrl(url: String): Boolean = url.startsWith("ws://") || url.startsWith("wss://")
 
 /**
  * Settings, pushed from the account avatar. Stateless apart from the sign-out
@@ -73,8 +67,6 @@ fun isValidServerUrl(url: String): Boolean = url.startsWith("ws://") || url.star
 fun SettingsScreen(
     state: SettingsUiState,
     onBack: () -> Unit,
-    onDataSourceChange: (DataSource) -> Unit,
-    onServerUrlChange: (String) -> Unit,
     onToleranceChange: (Int) -> Unit,
     onTripEndAfterChange: (Int) -> Unit,
     onCrashDetectionChange: (Boolean) -> Unit,
@@ -116,7 +108,7 @@ fun SettingsScreen(
         ) {
             AccountSection(state, onSignOutClick = { confirmSignOut = true }, onCreateAccount = onCreateAccount)
             VehicleSection(state.vehicle, onEditVehicle)
-            DataSourceSection(state, onDataSourceChange, onServerUrlChange)
+            CarDataSection(state)
             ScoringSection(state, onToleranceChange)
             TripsSection(state, onTripEndAfterChange)
             SafetySection(state, onCrashDetectionChange, onEmergencyContactChange, onTriggerTestCrash)
@@ -273,47 +265,31 @@ private fun VehicleSection(vehicle: VehicleProfileUi, onEditVehicle: () -> Unit)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Where the car's data comes from. Read-only: the demo car is the only source for now; a real
+ * tracker would be connected through the server.
+ */
 @Composable
-private fun DataSourceSection(
-    state: SettingsUiState,
-    onDataSourceChange: (DataSource) -> Unit,
-    onServerUrlChange: (String) -> Unit,
-) {
-    val live = state.dataSource == DataSource.Live
-    val urlInvalid = live && !isValidServerUrl(state.serverUrl)
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionTitle(R.string.settings_section_data_source)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = !live,
-                onClick = { onDataSourceChange(DataSource.Replay) },
-                shape = SegmentedButtonDefaults.itemShape(0, 2),
-            ) { Text(stringResource(R.string.settings_source_replay)) }
-            SegmentedButton(
-                selected = live,
-                onClick = { onDataSourceChange(DataSource.Live) },
-                shape = SegmentedButtonDefaults.itemShape(1, 2),
-            ) { Text(stringResource(R.string.settings_source_live)) }
-        }
-        OutlinedTextField(
-            value = state.serverUrl,
-            onValueChange = onServerUrlChange,
-            enabled = live,
-            isError = urlInvalid,
-            singleLine = true,
-            shape = MaterialTheme.shapes.small,
-            label = { Text(stringResource(R.string.settings_server_label)) },
-            supportingText = {
-                Text(
-                    stringResource(
-                        if (urlInvalid) R.string.settings_server_error else R.string.settings_server_hint,
-                    ),
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-            modifier = Modifier.fillMaxWidth(),
+private fun CarDataSection(state: SettingsUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionTitle(R.string.settings_section_car_data)
+        Text(
+            stringResource(R.string.settings_car_source),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
+        Text(
+            stringResource(R.string.settings_car_source_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (state.serverAddress.isNotBlank()) {
+            Text(
+                stringResource(R.string.settings_server_address, state.serverAddress),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -483,8 +459,6 @@ private fun PreviewScreen(state: SettingsUiState) {
         SettingsScreen(
             state = state,
             onBack = {},
-            onDataSourceChange = {},
-            onServerUrlChange = {},
             onToleranceChange = {},
             onTripEndAfterChange = {},
             onCrashDetectionChange = {},
@@ -505,7 +479,3 @@ private fun SettingsSignedInPreview() = PreviewScreen(PreviewStates.settingsSign
 @Preview(name = "Guest", showBackground = true, backgroundColor = BG, device = PHONE)
 @Composable
 private fun SettingsGuestPreview() = PreviewScreen(PreviewStates.settingsDefault)
-
-@Preview(name = "Live, invalid URL", showBackground = true, backgroundColor = BG, device = PHONE)
-@Composable
-private fun SettingsInvalidPreview() = PreviewScreen(PreviewStates.settingsInvalidUrl)

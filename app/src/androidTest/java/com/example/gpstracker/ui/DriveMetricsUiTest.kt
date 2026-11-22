@@ -164,8 +164,6 @@ class DriveMetricsUiTest {
                 SettingsScreen(
                     state = PreviewStates.settingsSignedIn,
                     onBack = {},
-                    onDataSourceChange = {},
-                    onServerUrlChange = {},
                     onToleranceChange = {},
                     onTripEndAfterChange = {},
                     onCrashDetectionChange = {},
@@ -179,6 +177,10 @@ class DriveMetricsUiTest {
         }
         rule.onNodeWithText("End a trip after the car stands still for").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Trips start automatically when the car moves.").performScrollTo().assertIsDisplayed()
+        // the car data section only informs; there is no switch that does nothing
+        rule.onNodeWithText("Simulated demo car").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Server: http://localhost:8080").assertIsDisplayed()
+        rule.onNodeWithText("Live device").assertDoesNotExist()
     }
 
     @Test

@@ -13,8 +13,6 @@ import com.example.gpstracker.ui.model.VehicleProfileUi
  * to the default, so an older file or a renamed option never breaks the app.
  */
 object SettingsPreferences {
-    private val dataSource = stringPreferencesKey("data_source")
-    private val serverUrl = stringPreferencesKey("server_url")
     private val speedTolerance = intPreferencesKey("speed_tolerance_kmh")
     private val tripEndAfter = intPreferencesKey("trip_end_after_min")
     private val crashDetection = booleanPreferencesKey("crash_detection")
@@ -25,8 +23,6 @@ object SettingsPreferences {
     private val monthlyKm = stringPreferencesKey("vehicle_monthly_km")
 
     fun read(prefs: Preferences, defaults: SettingsUiState = SettingsUiState()): SettingsUiState = defaults.copy(
-        dataSource = prefs[dataSource].toEnum(defaults.dataSource),
-        serverUrl = prefs[serverUrl] ?: defaults.serverUrl,
         speedTolerance = prefs[speedTolerance] ?: defaults.speedTolerance,
         tripEndAfterMinutes = prefs[tripEndAfter] ?: defaults.tripEndAfterMinutes,
         crashDetectionEnabled = prefs[crashDetection] ?: defaults.crashDetectionEnabled,
@@ -40,8 +36,6 @@ object SettingsPreferences {
     )
 
     fun write(prefs: MutablePreferences, settings: SettingsUiState) {
-        prefs[dataSource] = settings.dataSource.name
-        prefs[serverUrl] = settings.serverUrl
         prefs[speedTolerance] = settings.speedTolerance
         prefs[tripEndAfter] = settings.tripEndAfterMinutes
         prefs[crashDetection] = settings.crashDetectionEnabled

@@ -145,7 +145,7 @@ val viewModelModule = module {
     viewModel { TripsViewModel(get()) }
     viewModel { params -> TripDetailViewModel(params.get(), get()) }
     viewModel { InsightsViewModel(get(), get<SettingsRepository>().settings) }
-    viewModel { SettingsViewModel(get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), BuildConfig.SERVER_URL) }
     viewModel { CrashAlertViewModel(get<SettingsRepository>().settings) }
     viewModel { SupportChatViewModel(get()) }
 }
