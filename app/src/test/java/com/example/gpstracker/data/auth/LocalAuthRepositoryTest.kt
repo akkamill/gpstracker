@@ -1,5 +1,6 @@
 package com.example.gpstracker.data.auth
 
+import com.example.gpstracker.domain.auth.PasswordHasher
 import com.example.gpstracker.testing.FakeAccountDao
 import com.example.gpstracker.ui.model.SessionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -1,4 +1,4 @@
-package com.example.gpstracker.data.auth
+package com.example.gpstracker.domain.auth
 
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec

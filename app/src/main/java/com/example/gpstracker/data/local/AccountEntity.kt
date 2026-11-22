@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 /**
  * A local account. The password itself is never stored, only a salted, slow hash of it
- * (see PasswordHasher), so a copied database does not reveal passwords.
+ * (see the domain PasswordHasher), so a copied database does not reveal passwords.
  *
  * @property email lower-case, used as the key
  */

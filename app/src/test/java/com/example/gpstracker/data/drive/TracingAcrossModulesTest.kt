@@ -2,9 +2,9 @@ package com.example.gpstracker.data.drive
 
 import com.example.gpstracker.data.auth.InMemorySessionStore
 import com.example.gpstracker.data.auth.LocalAuthRepository
-import com.example.gpstracker.data.auth.PasswordHasher
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
+import com.example.gpstracker.domain.auth.PasswordHasher
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
 import com.example.gpstracker.testing.FakeAccountDao

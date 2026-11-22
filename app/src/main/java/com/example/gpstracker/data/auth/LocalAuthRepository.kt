@@ -2,6 +2,7 @@ package com.example.gpstracker.data.auth
 
 import com.example.gpstracker.data.local.AccountDao
 import com.example.gpstracker.data.local.AccountEntity
+import com.example.gpstracker.domain.auth.PasswordHasher
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.SessionState
 import kotlinx.coroutines.CoroutineDispatcher
