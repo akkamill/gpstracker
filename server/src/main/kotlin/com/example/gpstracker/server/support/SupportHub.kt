@@ -30,9 +30,9 @@ class SupportHub(private val repository: SupportRepository) {
     suspend fun driverJoined(accountId: UUID, peer: ChatPeer): String {
         val conversationId = repository.conversationOf(accountId)
         drivers.computeIfAbsent(conversationId) { ConcurrentHashMap.newKeySet() } += peer
+        tracer.info("driver joined the support chat", "conversation" to conversationId)
         peer.send(ChatServerEvent.History(conversationId, repository.messages(conversationId)))
         peer.send(ChatServerEvent.AgentsOnline(agents.isNotEmpty()))
-        tracer.info("driver joined the support chat", "conversation" to conversationId)
         return conversationId
     }
 
@@ -52,9 +52,9 @@ class SupportHub(private val repository: SupportRepository) {
     suspend fun agentJoined(peer: ChatPeer) {
         val first = agents.isEmpty()
         agents += peer
+        tracer.info("support agent joined", "agentsOnline" to agents.size)
         peer.send(ChatServerEvent.Conversations(repository.conversations()))
         if (first) toAllDrivers(ChatServerEvent.AgentsOnline(true))
-        tracer.info("support agent joined", "agentsOnline" to agents.size)
     }
 
     suspend fun agentLeft(peer: ChatPeer) {
@@ -85,11 +85,12 @@ class SupportHub(private val repository: SupportRepository) {
             return
         }
         val message = ChatServerEvent.Message(repository.add(conversationId, sender, text, event.clientId))
+        // logged before anyone hears about it, so a log never trails the event it describes
+        tracer.info("support message", "conversation" to conversationId, "from" to sender)
         drivers[conversationId].orEmpty().forEach { it.trySend(message) }
         agents.forEach { it.trySend(message) }
         val list = ChatServerEvent.Conversations(repository.conversations())
         agents.forEach { it.trySend(list) }
-        tracer.info("support message", "conversation" to conversationId, "from" to sender)
     }
 
     private suspend fun toAllDrivers(event: ChatServerEvent) = drivers.values.flatten().forEach { it.trySend(event) }
