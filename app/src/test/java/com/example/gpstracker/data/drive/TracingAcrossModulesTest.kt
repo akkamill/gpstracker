@@ -1,15 +1,19 @@
 package com.example.gpstracker.data.drive
 
-import com.example.gpstracker.data.fake.FakeAuthRepository
+import com.example.gpstracker.data.auth.InMemorySessionStore
+import com.example.gpstracker.data.auth.LocalAuthRepository
+import com.example.gpstracker.data.auth.PasswordHasher
 import com.example.gpstracker.data.telematics.SimulatedTelemetrySource
 import com.example.gpstracker.data.telematics.SimulatorMapLookup
 import com.example.gpstracker.domain.trip.DriveTracker
 import com.example.gpstracker.simulator.vehicle.SimulatedCar
+import com.example.gpstracker.testing.FakeAccountDao
 import com.example.gpstracker.tracing.MemorySink
 import com.example.gpstracker.tracing.RecordKind
 import com.example.gpstracker.tracing.Tracing
 import com.example.gpstracker.ui.model.SettingsUiState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -81,15 +85,22 @@ class TracingAcrossModulesTest {
 
     @Test
     fun `account logs never contain emails or passwords`() = runTest {
-        val auth = FakeAuthRepository(latencyMs = 0)
-        auth.signIn(FakeAuthRepository.DEMO_EMAIL, "wrong-password")
-        auth.signIn(FakeAuthRepository.DEMO_EMAIL, FakeAuthRepository.DEMO_PASSWORD)
+        val auth = LocalAuthRepository(
+            FakeAccountDao(),
+            InMemorySessionStore(),
+            backgroundScope,
+            PasswordHasher(iterations = 2),
+            UnconfinedTestDispatcher(testScheduler),
+        )
+        auth.signIn(LocalAuthRepository.DEMO_EMAIL, "wrong-password")
+        auth.signIn(LocalAuthRepository.DEMO_EMAIL, LocalAuthRepository.DEMO_PASSWORD)
         auth.signUp("Ona", "ona@example.com", "secret123")
         auth.signOut()
 
         val text = sink.records.value.joinToString("\n") { it.format() }
-        assertEquals(4, sink.records.value.size)
-        listOf("@", "wrong-password", FakeAuthRepository.DEMO_PASSWORD, "secret123", "Ona").forEach {
+        // session restored, failed sign in, signed in, account created, signed out
+        assertEquals(5, sink.records.value.size)
+        listOf("@", "wrong-password", LocalAuthRepository.DEMO_PASSWORD, "secret123", "Ona").forEach {
             assertTrue("logs contain $it", it !in text)
         }
     }

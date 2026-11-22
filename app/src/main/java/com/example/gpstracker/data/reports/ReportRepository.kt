@@ -37,6 +37,15 @@ class InMemoryReportRepository(
         tracer.info("road report added", "type" to report.type, "road" to report.roadName, "source" to report.source)
     }
 
+    /**
+     * Adds reports loaded from storage. When two have the same id, the one already in memory
+     * wins, then the one earlier in [saved].
+     */
+    fun restore(saved: List<RoadReport>) {
+        _reports.update { current -> (current + saved).distinctBy { it.id }.sortedBy { it.createdAtMs } }
+        removeInactive()
+    }
+
     override fun vote(id: String, stillThere: Boolean) {
         val now = clock()
         _reports.update { list -> list.map { if (it.id == id) rules.vote(it, stillThere, now) else it } }

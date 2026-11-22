@@ -2,11 +2,10 @@ package com.example.gpstracker.ui.auth.vehicle
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.gpstracker.AppContainer
+import com.example.gpstracker.data.settings.SettingsRepository
 import com.example.gpstracker.ui.auth.AuthMessages
 import com.example.gpstracker.ui.auth.VehicleValidator
 import com.example.gpstracker.ui.model.FuelType
-import com.example.gpstracker.ui.model.SettingsUiState
 import com.example.gpstracker.ui.model.VehicleErrorsUi
 import com.example.gpstracker.ui.model.VehicleProfileUi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class VehicleSetupViewModel @JvmOverloads constructor(
+class VehicleSetupViewModel(
     application: Application,
-    private val store: MutableStateFlow<SettingsUiState> = AppContainer.settings,
+    private val settings: SettingsRepository,
 ) : AndroidViewModel(application) {
-    private val _state = MutableStateFlow(store.value.vehicle)
+    private val _state = MutableStateFlow(settings.settings.value.vehicle)
     val state: StateFlow<VehicleProfileUi> = _state.asStateFlow()
 
     private val _errors = MutableStateFlow(VehicleErrorsUi())
@@ -52,7 +51,7 @@ class VehicleSetupViewModel @JvmOverloads constructor(
         )
         _errors.value = errors
         if (errors.consumption != null || errors.price != null || errors.monthlyKm != null) return false
-        store.update { it.copy(vehicle = profile) }
+        settings.update { it.copy(vehicle = profile) }
         return true
     }
 }

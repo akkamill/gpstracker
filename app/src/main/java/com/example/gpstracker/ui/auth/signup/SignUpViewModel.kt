@@ -3,7 +3,6 @@ package com.example.gpstracker.ui.auth.signup
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gpstracker.AppContainer
 import com.example.gpstracker.data.auth.AuthException
 import com.example.gpstracker.data.auth.AuthFailure
 import com.example.gpstracker.data.auth.AuthRepository
@@ -20,9 +19,9 @@ import kotlinx.coroutines.launch
  * Validates on submit, and after the first submit re-validates each field as it
  * changes, so nobody sees errors while still typing for the first time.
  */
-class SignUpViewModel @JvmOverloads constructor(
+class SignUpViewModel(
     application: Application,
-    private val auth: AuthRepository = AppContainer.auth,
+    private val auth: AuthRepository,
 ) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(SignUpUiState())
     val state: StateFlow<SignUpUiState> = _state.asStateFlow()

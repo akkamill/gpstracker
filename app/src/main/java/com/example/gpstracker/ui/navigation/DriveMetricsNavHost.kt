@@ -2,7 +2,6 @@ package com.example.gpstracker.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +18,7 @@ import com.example.gpstracker.ui.map.MapRoute
 import com.example.gpstracker.ui.settings.SettingsRoute
 import com.example.gpstracker.ui.tripdetail.TripDetailRoute
 import com.example.gpstracker.ui.trips.TripsRoute
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * The whole navigation graph: [AuthGraph] while signed out, [MainGraph] otherwise.
@@ -31,7 +31,7 @@ fun DriveMetricsNavHost(
     onTriggerTestCrash: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sessionViewModel: SessionViewModel = viewModel()
+    val sessionViewModel: SessionViewModel = koinViewModel()
 
     /** Clears the whole back stack and opens the main app. */
     fun enterMain() = navController.navigate(MainGraph) {
